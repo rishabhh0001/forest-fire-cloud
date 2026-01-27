@@ -2,7 +2,7 @@
 
 **A state-of-the-art fire and weather monitoring system with real-time alerts, analytics, and ESP8266 IoT integration.**
 
-![ForestGuard Dashboard](https://via.placeholder.com/800x400/0f111a/3b82f6?text=ForestGuard+Dashboard)
+![ForestGuard Dashboard](./public/dashboard.png)
 
 ## ✨ Features
 
