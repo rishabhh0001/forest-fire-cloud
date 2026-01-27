@@ -1359,17 +1359,373 @@ body.red-alert .card {
         /* Above nav bar if bottom nav exists, or just higher */
     }
 }
+
 /* PDF Print Styles */
-.pdf-container-hidden { position: fixed; top: 0; left: 0; z-index: -1000; opacity: 0; pointer-events: none; }
-.report-page-a4 { width: 210mm; height: 297mm; background: #ffffff; color: #1a1a1a; padding: 20mm; box-sizing: border-box; position: relative; overflow: hidden; margin-bottom: 2rem; display: flex; flex-direction: column; font-family: 'Inter', sans-serif; }
-.report-page-header { border-bottom: 2px solid #10b981; padding-bottom: 1rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; }
-.report-page-header h1 { font-size: 24px; font-weight: 700; color: #0f172a; margin: 0; }
-.report-page-header .brand { font-size: 14px; color: #64748b; display: flex; align-items: center; gap: 0.5rem; }
-.report-page-footer { position: absolute; bottom: 20mm; left: 20mm; right: 20mm; border-top: 1px solid #e2e8f0; padding-top: 1rem; display: flex; justify-content: space-between; font-size: 10px; color: #94a3b8; }
-.report-content-box { flex: 1; display: flex; flex-direction: column; gap: 1.5rem; }
-.report-page-a4 p { font-size: 12px; line-height: 1.6; color: #334155; text-align: justify; }
-.report-page-a4 h2 { font-size: 16px; color: #0f172a; margin-bottom: 0.5rem; border-left: 4px solid #10b981; padding-left: 0.75rem; }
-.report-page-a4 .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin: 1rem 0; }
-.report-page-a4 .stat-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 1rem; border-radius: 8px; text-align: center; }
-.report-page-a4 .stat-value { font-size: 20px; font-weight: 700; color: #0f172a; }
-.report-page-a4 .stat-label { font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.25rem; }
+.pdf-container-hidden {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: -1000;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.report-page-a4 {
+    width: 210mm;
+    height: 297mm;
+    background: #ffffff;
+    color: #1a1a1a;
+    padding: 20mm;
+    box-sizing: border-box;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 2rem;
+    display: flex;
+    flex-direction: column;
+    font-family: 'Inter', sans-serif;
+}
+
+.report-page-header {
+    border-bottom: 2px solid #10b981;
+    padding-bottom: 1rem;
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.report-page-header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+}
+
+.report-page-header .brand {
+    font-size: 14px;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.report-page-footer {
+    position: absolute;
+    bottom: 20mm;
+    left: 20mm;
+    right: 20mm;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 1rem;
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: #94a3b8;
+}
+
+.report-content-box {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.report-page-a4 p {
+    font-size: 12px;
+    line-height: 1.6;
+    color: #334155;
+    text-align: justify;
+}
+
+.report-page-a4 h2 {
+    font-size: 16px;
+    color: #0f172a;
+    margin-bottom: 0.5rem;
+    border-left: 4px solid #10b981;
+    padding-left: 0.75rem;
+}
+
+.report-page-a4 h3 {
+    font-size: 14px;
+    color: #0f172a;
+    margin-bottom: 0.5rem;
+}
+
+.report-page-a4 .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+.report-page-a4 .stat-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.report-page-a4 .stat-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.report-page-a4 .stat-label {
+    font-size: 10px;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 0.25rem;
+}
+
+/* KPI Grid Styles for PDF */
+.report-page-a4 .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin: 1.5rem 0;
+}
+
+.report-page-a4 .kpi-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.report-page-a4 .kpi-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 0.25rem;
+}
+
+.report-page-a4 .kpi-label {
+    font-size: 11px;
+    color: #64748b;
+    margin-bottom: 0.5rem;
+}
+
+.report-page-a4 .kpi-trend {
+    font-size: 10px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+}
+
+.report-page-a4 .kpi-trend.up {
+    color: #10b981;
+}
+
+.report-page-a4 .kpi-trend.down {
+    color: #ef4444;
+}
+
+/* Table Styles for PDF */
+.report-page-a4 table,
+.report-page-a4 .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: 11px;
+}
+
+.report-page-a4 table thead,
+.report-page-a4 .data-table thead {
+    background: #f1f5f9;
+}
+
+.report-page-a4 table th,
+.report-page-a4 .data-table th {
+    padding: 0.75rem;
+    text-align: left;
+    font-weight: 600;
+    color: #0f172a;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.report-page-a4 table td,
+.report-page-a4 .data-table td {
+    padding: 0.75rem;
+    color: #334155;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.report-page-a4 table tr:last-child td,
+.report-page-a4 .data-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* List Styles for PDF */
+.report-page-a4 ul,
+.report-page-a4 .recommendations-list {
+    list-style-type: disc;
+    padding-left: 1.5rem;
+    margin: 1rem 0;
+}
+
+.report-page-a4 li {
+    margin-bottom: 0.5rem;
+    font-size: 12px;
+    line-height: 1.6;
+    color: #334155;
+}
+
+/* Alert Timeline Styles for PDF */
+.report-page-a4 .alert-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.report-page-a4 .alert-item {
+    background: #f8fafc;
+    border-left: 4px solid #94a3b8;
+    padding: 1rem;
+    border-radius: 4px;
+}
+
+.report-page-a4 .alert-item.critical {
+    border-left-color: #ef4444;
+    background: #fef2f2;
+}
+
+.report-page-a4 .alert-item.warning {
+    border-left-color: #f59e0b;
+    background: #fffbeb;
+}
+
+.report-page-a4 .alert-item.info {
+    border-left-color: #3b82f6;
+    background: #eff6ff;
+}
+
+.report-page-a4 .alert-header-content {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.report-page-a4 .alert-title-text {
+    font-weight: 600;
+    font-size: 12px;
+    color: #0f172a;
+}
+
+.report-page-a4 .alert-timestamp {
+    font-size: 10px;
+    color: #64748b;
+}
+
+.report-page-a4 .alert-description {
+    font-size: 11px;
+    color: #475569;
+    line-height: 1.5;
+}
+
+.report-page-a4 .severity-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.report-page-a4 .severity-badge.critical {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.report-page-a4 .severity-badge.warning {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.report-page-a4 .severity-badge.info {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+/* Preview Section Styles for PDF */
+.report-page-a4 .preview-section {
+    margin-bottom: 1.5rem;
+}
+
+.report-page-a4 .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+.report-page-a4 .metric-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 0.75rem;
+    border-radius: 6px;
+    text-align: center;
+}
+
+.report-page-a4 .metric-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.report-page-a4 .metric-label {
+    font-size: 10px;
+    color: #64748b;
+    margin-top: 0.25rem;
+}
+
+/* Chart Container Styles for PDF */
+.report-page-a4 .report-charts-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin: 1rem 0;
+}
+
+.report-page-a4 .report-chart-item {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+.report-page-a4 .chart-container-sm {
+    width: 100%;
+    height: 200px;
+}
+
+.report-page-a4 img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Badge and Status Styles for PDF */
+.report-page-a4 .stat-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 600;
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+/* Remove dark theme styles in PDF */
+.report-page-a4 * {
+    background-color: transparent !important;
+}
+
+.report-page-a4 .preview-section {
+    background: transparent !important;
+    border: none !important;
+}
