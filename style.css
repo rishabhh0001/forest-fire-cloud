@@ -1729,3 +1729,14 @@ body.red-alert .card {
     background: transparent !important;
     border: none !important;
 }
+/* Force PDF content to use light theme colors - CRITICAL OVERRIDES */
+.report-page-a4 p, .report-page-a4 .report-text { color: #334155 !important; background: transparent !important; }
+.report-page-a4 h2 { color: #0f172a !important; background: transparent !important; border-right: none !important; border-top: none !important; border-bottom: none !important; }
+.report-page-a4 h3 { color: #0f172a !important; background: transparent !important; }
+.report-page-a4 strong, .report-page-a4 b { color: #0f172a !important; }
+.report-page-a4 .preview-section { background: transparent !important; border: none !important; padding: 0 !important; }
+.report-page-a4 div { background: transparent !important; }
+.report-page-a4 span { color: inherit !important; }
+.report-page-a4 table th { background: #f1f5f9 !important; color: #0f172a !important; }
+.report-page-a4 table td { background: transparent !important; color: #334155 !important; }
+.report-page-a4 * { background-color: transparent !important; }
