@@ -137,6 +137,14 @@ class DataService {
     constructor() {
         this.history = []; // Keep small history for charts
         this.overrideMode = null; // 'fire', 'storm', or null
+
+        // Initial simulation state for Random Walk
+        this.lastState = {
+            temperature: 24.5,
+            humidity: 45,
+            windSpeed: 15.0,
+            gasLevel: 400
+        };
     }
 
     async getSensorData() {
@@ -188,23 +196,41 @@ class DataService {
     triggerStorm() { this.overrideMode = 'storm'; }
     reset() { this.overrideMode = null; }
 
-    // Generate realistic fluctuating data
+    // Generate realistic fluctuating data (Random Walk)
     simulateData() {
         const now = new Date();
-        // Base values with random fluctuation
-        const temp = 25 + Math.random() * 5 - 2.5; // 22.5 - 27.5 range
-        const humidity = 45 + Math.random() * 10 - 5; // 40 - 50 range
-        const wind = 12 + Math.random() * 8; // 12 - 20 km/h
-        const gas = 350 + Math.random() * 50; // CO2 ppm
+
+        // Random walk logic: New value = Old Value + (Random Step) + (Pull to Mean)
+        // This prevents values from drifting infinitely and keeps them realistic
+
+        // Temperature (Mean: 25, Step: 0.2)
+        let tempChange = (Math.random() - 0.5) * 0.4;
+        let tempPull = (25 - this.lastState.temperature) * 0.05; // Pull back to 25
+        this.lastState.temperature += tempChange + tempPull;
+
+        // Humidity (Mean: 45, Step: 1)
+        let humidChange = (Math.random() - 0.5) * 2;
+        let humidPull = (45 - this.lastState.humidity) * 0.05;
+        this.lastState.humidity += humidChange + humidPull;
+
+        // Wind (Mean: 12, Step: 1.5)
+        let windChange = (Math.random() - 0.5) * 3;
+        let windPull = (12 - this.lastState.windSpeed) * 0.1;
+        this.lastState.windSpeed = Math.max(0, this.lastState.windSpeed + windChange + windPull);
+
+        // Gas (Mean: 400, Step: 10)
+        let gasChange = (Math.random() - 0.5) * 20;
+        let gasPull = (400 - this.lastState.gasLevel) * 0.05;
+        this.lastState.gasLevel = Math.max(0, this.lastState.gasLevel + gasChange + gasPull);
 
         return {
             timestamp: now.toISOString(),
-            temperature: parseFloat(temp.toFixed(1)),
-            humidity: Math.floor(humidity),
-            windSpeed: parseFloat(wind.toFixed(1)),
-            gasLevel: Math.floor(gas),
+            temperature: parseFloat(this.lastState.temperature.toFixed(1)),
+            humidity: Math.floor(this.lastState.humidity),
+            windSpeed: parseFloat(this.lastState.windSpeed.toFixed(1)),
+            gasLevel: Math.floor(this.lastState.gasLevel),
             // Fire sensors (digital)
-            smokeDetected: Math.random() > 0.98, // Rare random smoke event
+            smokeDetected: Math.random() > 0.995, // Very rare random smoke event
         };
     }
 
