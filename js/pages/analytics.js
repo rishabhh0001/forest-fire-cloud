@@ -247,7 +247,67 @@ function exportToCSV(data) {
     a.click();
 }
 
-function updateAllCharts(newData) {
-    // Implementation for updating charts with new data range
-    console.log('Updating charts with', newData.length, 'days of data');
+async function updateAllCharts(newData) { // Note: newData param is passed but we might want to fetch fresh from DB based on range
+    console.log('Updating charts...');
+
+    // If we have a DB, ignore the passed mock data and fetch real data
+    // The event listener passed 'newData' which was mock data. 
+    // We should refactor the event listener to pass the 'range' instead, but for now let's just use the range from the active button or just re-fetch.
+
+    const activeBtn = document.querySelector('.time-range-selector .active');
+    const range = activeBtn ? parseInt(activeBtn.dataset.range) : 7;
+
+    let chartData = [];
+
+    if (window.db) {
+        const readings = await window.db.getReadings(range);
+        if (readings && readings.length > 0) {
+            chartData = processReadingsForCharts(readings);
+        }
+    }
+
+    // Fallback to mock if empty
+    if (chartData.length === 0) {
+        chartData = generateHistoricalData(range);
+    }
+
+    // Destroy old charts to prevent memory leaks / artifacts
+    ['tempTrendChart', 'humidityTrendChart', 'windTrendChart', 'riskTrendChart'].forEach(id => {
+        const title = Chart.getChart(id)?.config.data.datasets[0].label;
+        const color = Chart.getChart(id)?.config.data.datasets[0].borderColor;
+        const ctx = document.getElementById(id).getContext('2d');
+
+        // Destroy existing
+        const existing = Chart.getChart(id);
+        if (existing) existing.destroy();
+
+        // Re-create
+        let dataMap;
+        if (id.includes('temp')) dataMap = d => d.temp;
+        else if (id.includes('humidity')) dataMap = d => d.humidity;
+        else if (id.includes('wind')) dataMap = d => d.wind;
+        else dataMap = d => d.risk;
+
+        createTrendChart(id, title, chartData.map(dataMap), color);
+    });
+
+    // Update Summary Stats
+    updateSummaryStats(chartData);
+}
+
+function updateSummaryStats(data) {
+    if (!data.length) return;
+    const avgTemp = (data.reduce((sum, d) => sum + d.temp, 0) / data.length).toFixed(1);
+    const avgHumidity = Math.round(data.reduce((sum, d) => sum + d.humidity, 0) / data.length);
+    const maxWind = Math.max(...data.map(d => d.wind)).toFixed(1);
+    const peakRisk = Math.max(...data.map(d => d.risk)).toFixed(0);
+
+    const avgRisk = Math.round(data.reduce((sum, d) => sum + d.risk, 0) / data.length);
+
+    // Safely update DOM
+    if (document.getElementById('avg-temp')) document.getElementById('avg-temp').innerText = avgTemp;
+    if (document.getElementById('avg-humidity')) document.getElementById('avg-humidity').innerText = avgHumidity;
+    if (document.getElementById('max-wind')) document.getElementById('max-wind').innerText = maxWind;
+    if (document.getElementById('peak-risk')) document.getElementById('peak-risk').innerText = peakRisk;
+    if (document.getElementById('avg-risk')) document.getElementById('avg-risk').innerText = avgRisk + '%';
 }

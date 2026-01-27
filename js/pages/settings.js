@@ -152,6 +152,21 @@ async function renderSettings() {
                     </button>
                 </div>
             </div>
+
+            <!-- Credits & About -->
+            <div class="card settings-card">
+                <div class="card-header">
+                    <h2><i class="ph ph-info"></i> About ForestGuard</h2>
+                </div>
+                <div class="settings-form">
+                    <div class="about-content">
+                        <p>ForestGuard is an advanced environmental monitoring system designed to detect early signs of wildfires and hazardous weather conditions.</p>
+                        <br>
+                        <p><strong>Version:</strong> 1.0.0</p>
+                        <p><strong>Designed & Programmed by:</strong> <span class="highlight-name">Rishabh Joshi</span></p>
+                    </div>
+                </div>
+            </div>
         </div>
     `;
 
@@ -259,7 +274,11 @@ function initializeSettings() {
         } else {
             CONFIG.enableNotifications = false;
         }
+    }
     });
+
+// Initialize custom dropdowns
+if (window.initCustomDropdowns) window.initCustomDropdowns();
 }
 
 function showToast(message, type = 'info') {

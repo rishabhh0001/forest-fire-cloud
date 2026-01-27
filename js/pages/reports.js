@@ -243,6 +243,9 @@ function initializeReports() {
             showToast('Downloading report...', 'info');
         });
     });
+
+    // Initialize custom dropdowns
+    if (window.initCustomDropdowns) window.initCustomDropdowns();
 }
 
 async function generatePDFReport() {

@@ -246,7 +246,10 @@ const UI = {
     currentMode: null,
 
     initChart() {
-        const ctx = document.getElementById('tempChart').getContext('2d');
+        const canvas = document.getElementById('tempChart');
+        if (!canvas) return; // Exit if chart canvas doesn't exist (e.g. not on Dashboard)
+
+        const ctx = canvas.getContext('2d');
         const gradient = ctx.createLinearGradient(0, 0, 0, 400);
         gradient.addColorStop(0, 'rgba(59, 130, 246, 0.5)');
         gradient.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
@@ -279,13 +282,27 @@ const UI = {
     },
 
     updateDashboard(data) {
-        // Update basic metrics
+        // Re-query elements as they might have been re-created by router
+        const tempEl = document.getElementById('temp-display');
+
+        // If critical element is missing, we are likely not on the dashboard
+        if (!tempEl) {
+            // Still check for alerts even if not on dashboard
+            // But we need to be careful with alert UI elements too
+            // For now, if we are not on dashboard, we just skip UI updates
+            // Background notifications (browser/email) can be handled separately if needed
+            this.checkAlerts(data, 0); // Pass 0 risk if we can't calc it easily, or recalc it
+            return;
+        }
+
         // Update basic metrics with interpolation
-        this.animateValue(this.elements.temp, parseFloat(this.elements.temp.innerText) || 0, data.temperature, 1000);
-        this.animateValue(this.elements.humid, parseInt(this.elements.humid.innerText) || 0, data.humidity, 1000);
-        this.animateValue(this.elements.wind, parseFloat(this.elements.wind.innerText) || 0, data.windSpeed, 1000);
-        this.animateValue(this.elements.gas, parseInt(this.elements.gas.innerText) || 0, data.gasLevel, 1000);
-        this.elements.lastUpdate.innerText = new Date().toLocaleTimeString();
+        this.animateValue(document.getElementById('temp-display'), parseFloat(document.getElementById('temp-display').innerText) || 0, data.temperature, 1000);
+        this.animateValue(document.getElementById('humid-display'), parseInt(document.getElementById('humid-display').innerText) || 0, data.humidity, 1000);
+        this.animateValue(document.getElementById('wind-display'), parseFloat(document.getElementById('wind-display').innerText) || 0, data.windSpeed, 1000);
+        this.animateValue(document.getElementById('gas-display'), parseInt(document.getElementById('gas-display').innerText) || 0, data.gasLevel, 1000);
+
+        const lastUpdateEl = document.getElementById('last-update');
+        if (lastUpdateEl) lastUpdateEl.innerText = new Date().toLocaleTimeString();
 
         // Calculate Risk
         let riskScore = 0;
@@ -296,8 +313,10 @@ const UI = {
         riskScore = Math.min(100, Math.max(0, Math.round(riskScore)));
 
         // Update Risk UI
-        this.elements.riskScore.innerText = `${riskScore}%`;
-        this.elements.riskBar.style.width = `${riskScore}%`;
+        const riskScoreEl = document.getElementById('risk-score');
+        const riskBarEl = document.getElementById('risk-bar');
+        if (riskScoreEl) riskScoreEl.innerText = `${riskScore}%`;
+        if (riskBarEl) riskBarEl.style.width = `${riskScore}%`;
 
         // Determine Status Color
         let status = 'Normal';
@@ -319,9 +338,12 @@ const UI = {
             this.setAlertMode(null);
         }
 
-        this.elements.riskBadge.innerText = status;
-        this.elements.riskBadge.style.backgroundColor = `${colorClass}22`;
-        this.elements.riskBadge.style.color = colorClass;
+        const riskBadge = document.getElementById('risk-badge');
+        if (riskBadge) {
+            riskBadge.innerText = status;
+            riskBadge.style.backgroundColor = `${colorClass}22`;
+            riskBadge.style.color = colorClass;
+        }
 
         // Update Chart
         this.updateChart(data.temperature);
@@ -331,7 +353,6 @@ const UI = {
     },
 
     setAlertMode(mode) {
-        // Prevent re-triggering if already in mode
         if (this.currentMode === mode) return;
         this.currentMode = mode;
 
@@ -342,22 +363,42 @@ const UI = {
         body.classList.remove('red-alert', 'storm-alert');
         overlay.classList.remove('active');
 
+        // Clear any existing dismiss timeout
+        if (this.overlayTimeout) {
+            clearTimeout(this.overlayTimeout);
+            this.overlayTimeout = null;
+        }
+
         if (mode === 'fire') {
             body.classList.add('red-alert');
             overlay.classList.add('active');
             overlayText.innerText = 'CRITICAL FIRE WARNING';
             overlayText.style.color = '#ef4444';
             overlayText.style.textShadow = '0 0 20px #ef4444';
+
             this.triggerWarningText();
             audio.playSiren();
+
+            // Auto-dismiss overlay but keep alert state
+            this.overlayTimeout = setTimeout(() => {
+                overlay.classList.remove('active');
+            }, 4000);
+
         } else if (mode === 'storm') {
             body.classList.add('storm-alert');
             overlay.classList.add('active');
             overlayText.innerText = 'STORM SURGE WARNING';
             overlayText.style.color = '#3b82f6';
             overlayText.style.textShadow = '0 0 20px #3b82f6';
+
             this.triggerWarningText();
             audio.playStorm();
+
+            // Auto-dismiss overlay but keep alert state
+            this.overlayTimeout = setTimeout(() => {
+                overlay.classList.remove('active');
+            }, 4000);
+
         } else {
             audio.stopAll();
         }
@@ -388,42 +429,50 @@ const UI = {
     },
 
     checkAlerts(data, risk) {
-        if (this.elements.alertsList.children.length > 5) {
-            this.elements.alertsList.lastElementChild.remove();
+        const alertsList = document.getElementById('alerts-list');
+
+        // Only update UI if alert list exists (we are on dashboard or alerts page)
+        if (alertsList) {
+            if (alertsList.children.length > 5) {
+                alertsList.lastElementChild.remove();
+            }
         }
 
         if (data.smokeDetected) {
-            if (!this.hasRecentAlert('CRITICAL: Smoke Detected')) {
-                this.addAlert('CRITICAL: Smoke Detected', 'Sensor Array 1', 'danger');
-            }
+            // Always trigger notifications, but only update UI if list exists
+            this.triggerGlobalAlert('CRITICAL: Smoke Detected', 'Sensor Array 1', 'danger', alertsList);
         } else if (risk > 85) {
-            if (Math.random() > 0.8 && !this.hasRecentAlert('Extreme Fire Risk')) {
-                this.addAlert('Extreme Fire Risk', 'Weather Analysis', 'danger');
+            if (Math.random() > 0.8) {
+                this.triggerGlobalAlert('Extreme Fire Risk', 'Weather Analysis', 'danger', alertsList);
             }
         } else if (data.temperature > 35) {
-            if (Math.random() > 0.9 && !this.hasRecentAlert('High Temperature Warning')) {
-                this.addAlert('High Temperature Warning', 'Sensor 2', 'warning');
+            if (Math.random() > 0.9) {
+                this.triggerGlobalAlert('High Temperature Warning', 'Sensor 2', 'warning', alertsList);
             }
         }
     },
 
-    hasRecentAlert(title) {
-        const first = this.elements.alertsList.firstElementChild;
+    triggerGlobalAlert(title, source, type, listElement) {
+        // Check if we should add to UI
+        if (listElement && !this.hasRecentAlert(title, listElement)) {
+            this.addAlert(title, source, type, listElement);
+        } else if (!listElement) {
+            // Still send browser/email notifications if legitimate new alert logic allows
+            // For simplicity, we limit this to avoid spam when UI isn't there to show checking
+            // Ideally we'd have a notification service separate from UI
+            if (Math.random() > 0.95) { // Very simple throttle for background
+                this.sendBackgroundNotification(title, source, type);
+            }
+        }
+    },
+
+    hasRecentAlert(title, listElement) {
+        if (!listElement) return false;
+        const first = listElement.firstElementChild;
         return first && first.innerHTML.includes(title);
     },
 
-    addAlert(title, source, type) {
-        const item = document.createElement('div');
-        item.className = `alert-item ${type}`;
-        item.innerHTML = `
-            <i class="ph ${type === 'danger' ? 'ph-warning-octagon' : 'ph-warning-circle'}"></i>
-            <div class="alert-content">
-                <h3>${title}</h3>
-                <p>${source} · Just now</p>
-            </div>
-        `;
-        this.elements.alertsList.prepend(item);
-
+    sendBackgroundNotification(title, source, type) {
         // Browser Notification
         if (CONFIG.enableNotifications && 'Notification' in window && Notification.permission === 'granted') {
             new Notification('ForestGuard Alert', {
@@ -436,6 +485,21 @@ const UI = {
         if (CONFIG.enableEmailNotifications && CONFIG.emailAddress) {
             this.sendEmailAlert(title, source, type);
         }
+    },
+
+    addAlert(title, source, type, listElement) {
+        const item = document.createElement('div');
+        item.className = `alert-item ${type}`;
+        item.innerHTML = `
+            <i class="ph ${type === 'danger' ? 'ph-warning-octagon' : 'ph-warning-circle'}"></i>
+            <div class="alert-content">
+                <h3>${title}</h3>
+                <p>${source} · Just now</p>
+            </div>
+        `;
+        listElement.prepend(item);
+
+        this.sendBackgroundNotification(title, source, type);
     },
 
     // Mock Email Service (Rate limited to avoid spamming toast)
@@ -497,7 +561,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // We bind it to any click for now, or the debug buttons will handle it.
     document.addEventListener('click', () => audio.ensureContext(), { once: true });
 
-    UI.initChart();
+
 
     dataService.getSensorData().then(data => UI.updateDashboard(data));
 
