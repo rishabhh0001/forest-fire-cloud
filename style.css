@@ -874,6 +874,12 @@ body.red-alert .card {
     color: white;
 }
 
+.highlight-name {
+    color: var(--primary-accent);
+    font-weight: 600;
+    font-size: 1.1em;
+}
+
 .btn-warning {
     background: rgba(245, 158, 11, 0.15);
     color: var(--warning-accent);

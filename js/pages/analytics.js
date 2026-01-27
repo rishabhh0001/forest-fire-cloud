@@ -101,9 +101,24 @@ async function renderAnalytics() {
     initializeAnalytics();
 }
 
-function initializeAnalytics() {
-    const days = 7;
-    const historicalData = generateHistoricalData(days);
+async function initializeAnalytics() {
+    let historicalData = [];
+
+    // Try to load from DB
+    if (window.db) {
+        // Get all readings and filter/aggregate as needed
+        // For simplicity, we just take the last N items or day averages
+        const readings = await window.db.getReadings(90);
+        if (readings && readings.length > 0) {
+            historicalData = processReadingsForCharts(readings);
+        }
+    }
+
+    // Fallback if no data
+    if (historicalData.length === 0) {
+        historicalData = generateHistoricalData(7);
+    }
+
 
     // Temperature Chart
     createTrendChart('tempTrendChart', 'Temperature (°C)', historicalData.map(d => d.temp), '#ef4444');
@@ -163,6 +178,19 @@ function generateHistoricalData(days) {
         });
     }
     return data;
+}
+
+function processReadingsForCharts(readings) {
+    // Group by day or hour depending on density
+    // For this implementation, we map directly to chart format
+    // taking the last 30 points max to avoid overcrowding
+    return readings.slice(-30).map(r => ({
+        date: new Date(r.timestamp),
+        temp: r.temperature,
+        humidity: r.humidity,
+        wind: r.windSpeed,
+        risk: (r.temperature - 20) * 2 + r.windSpeed // Rough risk calc reconstruction
+    }));
 }
 
 function createTrendChart(canvasId, label, data, color) {

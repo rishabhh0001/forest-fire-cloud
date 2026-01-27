@@ -111,6 +111,24 @@ async function renderReports() {
                         </ul>
                     </div>
 
+                    <div class="preview-section avoid-break">
+                        <h2>Key Metrics Analysis</h2>
+                        <div class="report-charts-grid">
+                            <div class="report-chart-item">
+                                <h3>Temperature Trend</h3>
+                                <div class="chart-container-sm">
+                                    <canvas id="reportTempChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="report-chart-item">
+                                <h3>Fire Risk Assessment</h3>
+                                <div class="chart-container-sm">
+                                    <canvas id="reportRiskChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="preview-section">
                         <h2>Recommendations</h2>
                         <ul class="recommendations-list">
@@ -136,28 +154,77 @@ async function renderReports() {
                         </div>
                         <button class="download-btn"><i class="ph ph-download"></i></button>
                     </div>
-                    <div class="report-item">
-                        <i class="ph ph-file-pdf"></i>
-                        <div class="report-info">
-                            <h3>Monthly Analysis - January 2026</h3>
-                            <p>Generated yesterday • 512 KB</p>
-                        </div>
-                        <button class="download-btn"><i class="ph ph-download"></i></button>
-                    </div>
-                    <div class="report-item">
-                        <i class="ph ph-file-pdf"></i>
-                        <div class="report-info">
-                            <h3>Alert History - Q4 2025</h3>
-                            <p>Generated 3 days ago • 189 KB</p>
-                        </div>
-                        <button class="download-btn"><i class="ph ph-download"></i></button>
-                    </div>
+                    <!-- ... other report items ... -->
                 </div>
             </div>
         </div>
     `;
 
     initializeReports();
+    // Render charts after DOM is ready
+    setTimeout(renderReportCharts, 100);
+}
+
+let reportCharts = {};
+
+function renderReportCharts() {
+    // Mock data for report chars (will be replaced by DB data later)
+    const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const tempData = [22, 24, 25, 23, 26, 28, 24];
+    const riskData = [10, 15, 20, 18, 35, 45, 30];
+
+    // Temp Chart
+    const tempCtx = document.getElementById('reportTempChart').getContext('2d');
+    reportCharts.temp = new Chart(tempCtx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Temperature (°C)',
+                data: tempData,
+                borderColor: '#3b82f6',
+                borderWidth: 2,
+                tension: 0.4,
+                fill: false,
+                pointRadius: 0
+            }]
+        },
+        options: {
+            animation: false, // Disable animation for easier PDF capture
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { display: true, grid: { display: false }, ticks: { font: { size: 8 } } },
+                y: { display: true, beginAtZero: false, ticks: { font: { size: 8 } } }
+            }
+        }
+    });
+
+    // Risk Chart
+    const riskCtx = document.getElementById('reportRiskChart').getContext('2d');
+    reportCharts.risk = new Chart(riskCtx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Risk Score (%)',
+                data: riskData,
+                backgroundColor: riskData.map(v => v > 40 ? '#ef4444' : '#10b981'),
+                borderRadius: 4
+            }]
+        },
+        options: {
+            animation: false,
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { display: true, grid: { display: false }, ticks: { font: { size: 8 } } },
+                y: { display: true, beginAtZero: true, max: 100, ticks: { font: { size: 8 } } }
+            }
+        }
+    });
 }
 
 function getDateString(daysOffset) {
@@ -184,7 +251,7 @@ async function generatePDFReport() {
     btn.innerHTML = '<i class="ph ph-spinner"></i> Generating...';
 
     // Simulate PDF generation delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    await new Promise(resolve => setTimeout(resolve, 500));
 
     // Using jsPDF 
     // Check for global or namespaced jsPDF (UMD pattern)
@@ -192,29 +259,67 @@ async function generatePDFReport() {
 
     if (jsPDF) {
         const doc = new jsPDF();
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const margin = 20;
+        const activeWidth = pageWidth - (margin * 2);
 
         // Header
-        doc.setFontSize(20);
-        doc.text('ForestGuard Monitoring Report', 20, 20);
+        doc.setFontSize(22);
+        doc.setTextColor(40, 40, 40);
+        doc.text('ForestGuard Monitoring Report', margin, 20);
 
         doc.setFontSize(10);
-        doc.text(`Generated: ${new Date().toLocaleString()}`, 20, 30);
+        doc.setTextColor(100, 100, 100);
+        doc.text(`Generated: ${new Date().toLocaleString()}`, margin, 30);
+        doc.line(margin, 35, pageWidth - margin, 35);
 
-        // Summary
+        // Summary Stats
         doc.setFontSize(14);
-        doc.text('Executive Summary', 20, 45);
-        doc.setFontSize(10);
-        doc.text('Average Temperature: 24.5°C', 20, 55);
-        doc.text('Average Humidity: 45%', 20, 62);
-        doc.text('Peak Wind Speed: 32.1 km/h', 20, 69);
-        doc.text('Total Alerts: 12', 20, 76);
+        doc.setTextColor(0, 0, 0);
+        doc.text('Executive Summary', margin, 50);
 
-        // Risk Assessment
-        doc.setFontSize(14);
-        doc.text('Risk Assessment', 20, 91);
         doc.setFontSize(10);
-        const riskText = 'During the reporting period, the fire risk remained predominantly in the Low to Moderate range.';
-        doc.text(doc.splitTextToSize(riskText, 170), 20, 101);
+        doc.setTextColor(60, 60, 60);
+        doc.text('Average Temperature: 24.5°C', margin, 60);
+        doc.text('Average Humidity: 45%', margin + 60, 60);
+        doc.text('Peak Wind Speed: 32.1 km/h', margin, 68);
+        doc.text('Total Alerts: 12', margin + 60, 68);
+
+        // Risk Assessment Text
+        doc.setFontSize(14);
+        doc.setTextColor(0, 0, 0);
+        doc.text('Risk Assessment', margin, 85);
+        doc.setFontSize(10);
+        doc.setTextColor(60, 60, 60);
+        const riskText = 'During the reporting period, the fire risk remained predominantly in the Low to Moderate range. Peak risk occurred recently reaching 45%.';
+        const splitText = doc.splitTextToSize(riskText, activeWidth);
+        doc.text(splitText, margin, 95);
+
+        let currentY = 110;
+
+        // Embed Charts
+        if (reportCharts.temp) {
+            doc.setFontSize(14);
+            doc.setTextColor(0, 0, 0);
+            doc.text('Visual Analysis', margin, currentY);
+            currentY += 10;
+
+            // Add Temperature Chart
+            const tempImg = reportCharts.temp.toBase64Image();
+            doc.addImage(tempImg, 'PNG', margin, currentY, activeWidth, 60);
+            currentY += 65;
+
+            // Add Risk Chart
+            const riskImg = reportCharts.risk.toBase64Image();
+            doc.addImage(riskImg, 'PNG', margin, currentY, activeWidth, 60);
+            currentY += 70;
+        }
+
+        // Footer credits
+        doc.setFontSize(8);
+        doc.setTextColor(150, 150, 150);
+        doc.text('Report Generated by ForestGuard System', margin, 280);
+        doc.text('Designed & Programmed by Rishabh Joshi', pageWidth - margin - 50, 280);
 
         // Save
         doc.save(`forestguard-report-${new Date().toISOString().split('T')[0]}.pdf`);

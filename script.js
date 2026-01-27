@@ -152,10 +152,10 @@ class DataService {
                 return this.processData(data);
             } catch (e) {
                 console.error("Connection failed, falling back to simulation", e);
-                return this.simulateData();
+                return this.simulateDataWithPersistence();
             }
         } else {
-            return this.simulateData();
+            return this.simulateDataWithPersistence();
         }
     }
 
@@ -208,7 +208,20 @@ class DataService {
         };
     }
 
-    processData(data) {
+    async processData(data) {
+        // Save to DB
+        if (window.db) {
+            await window.db.addReading(data);
+        }
+        return data;
+    }
+
+    // Mock data wrapper to save to DB too
+    async simulateDataWithPersistence() {
+        const data = this.simulateData();
+        if (window.db) {
+            await window.db.addReading(data);
+        }
         return data;
     }
 }
