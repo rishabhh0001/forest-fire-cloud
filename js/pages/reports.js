@@ -59,7 +59,10 @@ async function renderReports() {
                         </div>
                     </div>
                     <button class="generate-btn" id="generate-pdf">
-                        <i class="ph ph-file-arrow-down"></i> Generate PDF Report
+                        <i class="ph ph-file-pdf"></i> Generate PDF Report
+                    </button>
+                    <button class="generate-btn secondary" id="refresh-preview" style="margin-top: 10px; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); color: #3b82f6;">
+                        <i class="ph ph-arrows-clockwise"></i> Refresh Preview
                     </button>
                 </div>
             </div>
@@ -70,82 +73,21 @@ async function renderReports() {
                     <h2><i class="ph ph-eye"></i> Report Preview</h2>
                 </div>
                 <div class="report-preview" id="report-preview">
+                    <!-- Preview content populated dynamically -->
                     <div class="preview-header">
                         <h1>ForestGuard Monitoring Report</h1>
                         <p class="preview-date">Generated: ${new Date().toLocaleDateString()}</p>
                     </div>
-                    
-                    <div class="preview-section">
-                        <h2>Executive Summary</h2>
-                        <div class="summary-stats">
-                            <div class="summary-item">
-                                <div class="summary-label">Average Temperature</div>
-                                <div class="summary-value">24.5°C</div>
-                            </div>
-                            <div class="summary-item">
-                                <div class="summary-label">Average Humidity</div>
-                                <div class="summary-value">45%</div>
-                            </div>
-                            <div class="summary-item">
-                                <div class="summary-label">Peak Wind Speed</div>
-                                <div class="summary-value">32.1 km/h</div>
-                            </div>
-                            <div class="summary-item">
-                                <div class="summary-label">Total Alerts</div>
-                                <div class="summary-value">12</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="preview-section">
-                        <h2>Risk Assessment</h2>
-                        <p>During the reporting period, the fire risk remained predominantly in the <strong>Low to Moderate</strong> range. Peak risk occurred on <strong>${getDateString(-2)}</strong> reaching 78%, triggered by high temperatures and low humidity conditions.</p>
-                    </div>
-
-                    <div class="preview-section">
-                        <h2>Alert Summary</h2>
-                        <ul class="alert-summary-list">
-                            <li><strong>3</strong> Critical Alerts</li>
-                            <li><strong>6</strong> Warning Alerts</li>
-                            <li><strong>3</strong> Informational Alerts</li>
-                        </ul>
-                    </div>
-
-                    <div class="preview-section avoid-break">
-                        <h2>Key Metrics Analysis</h2>
-                        <div class="report-charts-grid">
-                            <div class="report-chart-item">
-                                <h3>Temperature Trend</h3>
-                                <div class="chart-container-sm">
-                                    <canvas id="reportTempChart"></canvas>
-                                </div>
-                            </div>
-                            <div class="report-chart-item">
-                                <h3>Fire Risk Assessment</h3>
-                                <div class="chart-container-sm">
-                                    <canvas id="reportRiskChart"></canvas>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="preview-section">
-                        <h2>Recommendations</h2>
-                        <ul class="recommendations-list">
-                            <li>Continue monitoring humidity levels during dry periods</li>
-                            <li>Increase sensor polling frequency during high-risk conditions</li>
-                            <li>Review and update fire risk thresholds based on seasonal patterns</li>
-                        </ul>
-                    </div>
+                    <div id="preview-body"></div>
                 </div>
             </div>
-
-            <!-- Recent Reports -->
+            
+            <!-- Recent Reports (Static for now) -->
             <div class="card recent-reports-card">
                 <div class="card-header">
-                    <h2><i class="ph ph-clock-counter-clockwise"></i> Recent Reports</h2>
+                     <h2><i class="ph ph-clock-counter-clockwise"></i> Recent Reports</h2>
                 </div>
-                <div class="recent-reports-list">
+                 <div class="recent-reports-list">
                     <div class="report-item">
                         <i class="ph ph-file-pdf"></i>
                         <div class="report-info">
@@ -154,20 +96,125 @@ async function renderReports() {
                         </div>
                         <button class="download-btn"><i class="ph ph-download"></i></button>
                     </div>
-                    <!-- ... other report items ... -->
                 </div>
             </div>
         </div>
     `;
 
     initializeReports();
-    // Render charts after DOM is ready
-    setTimeout(renderReportCharts, 100);
+    updateReportPreview(); // Initial load
 }
 
 let reportCharts = {};
 
+// Helper to get checkbox state
+function getSectionState(label) {
+    const checkboxes = Array.from(document.querySelectorAll('.checkbox-label'));
+    const checkbox = checkboxes.find(c => c.textContent.trim().includes(label));
+    return checkbox ? checkbox.querySelector('input').checked : false;
+}
+
+function updateReportPreview() {
+    const previewBody = document.getElementById('preview-body');
+    if (!previewBody) return;
+
+    let html = '';
+
+    // Summary Stats
+    if (getSectionState('Alert Summary') || getSectionState('Temperature Data')) {
+        html += `
+            <div class="preview-section">
+                <h2>Executive Summary</h2>
+                <div class="summary-stats">
+                    ${getSectionState('Temperature Data') ? `
+                    <div class="summary-item">
+                        <div class="summary-label">Average Temperature</div>
+                        <div class="summary-value">24.5°C</div>
+                    </div>` : ''}
+                    ${getSectionState('Humidity Levels') ? `
+                    <div class="summary-item">
+                        <div class="summary-label">Average Humidity</div>
+                        <div class="summary-value">45%</div>
+                    </div>` : ''}
+                    ${getSectionState('Wind Speed') ? `
+                    <div class="summary-item">
+                        <div class="summary-label">Peak Wind Speed</div>
+                        <div class="summary-value">32.1 km/h</div>
+                    </div>` : ''}
+                    ${getSectionState('Alert Summary') ? `
+                    <div class="summary-item">
+                        <div class="summary-label">Total Alerts</div>
+                        <div class="summary-value">12</div>
+                    </div>` : ''}
+                </div>
+            </div>`;
+    }
+
+    // Risk Assessment
+    if (getSectionState('Fire Risk Analysis')) {
+        html += `
+            <div class="preview-section">
+                <h2>Risk Assessment</h2>
+                <p>During the reporting period, the fire risk remained predominantly in the <strong>Low to Moderate</strong> range. Peak risk occurred on <strong>${getDateString(-2)}</strong> reaching 78%, triggered by high temperatures and low humidity conditions.</p>
+            </div>`;
+    }
+
+    // Alerts Detail
+    if (getSectionState('Alert Summary')) {
+        html += `
+            <div class="preview-section">
+                <h2>Alert Summary</h2>
+                <ul class="alert-summary-list">
+                    <li><strong>3</strong> Critical Alerts</li>
+                    <li><strong>6</strong> Warning Alerts</li>
+                    <li><strong>3</strong> Informational Alerts</li>
+                </ul>
+            </div>`;
+    }
+
+    // Charts
+    if (getSectionState('Charts & Graphs')) {
+        html += `
+            <div class="preview-section avoid-break">
+                <h2>Key Metrics Analysis</h2>
+                <div class="report-charts-grid">
+                    <div class="report-chart-item">
+                        <h3>Temperature Trend</h3>
+                        <div class="chart-container-sm">
+                            <canvas id="reportTempChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="report-chart-item">
+                        <h3>Fire Risk Assessment</h3>
+                        <div class="chart-container-sm">
+                            <canvas id="reportRiskChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+    }
+
+    // Recommendations (Default)
+    html += `
+        <div class="preview-section">
+            <h2>Recommendations</h2>
+            <ul class="recommendations-list">
+                <li>Continue monitoring humidity levels during dry periods</li>
+                <li>Increase sensor polling frequency during high-risk conditions</li>
+            </ul>
+        </div>`;
+
+    previewBody.innerHTML = html;
+
+    // Re-render charts if container exists
+    if (getSectionState('Charts & Graphs') && document.getElementById('reportTempChart')) {
+        setTimeout(renderReportCharts, 100);
+    }
+}
+
 function renderReportCharts() {
+    if (!document.getElementById('reportTempChart')) return;
+
     // Mock data for report chars (will be replaced by DB data later)
     const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     const tempData = [22, 24, 25, 23, 26, 28, 24];
@@ -175,6 +222,8 @@ function renderReportCharts() {
 
     // Temp Chart
     const tempCtx = document.getElementById('reportTempChart').getContext('2d');
+    if (reportCharts.temp) reportCharts.temp.destroy();
+
     reportCharts.temp = new Chart(tempCtx, {
         type: 'line',
         data: {
@@ -190,7 +239,7 @@ function renderReportCharts() {
             }]
         },
         options: {
-            animation: false, // Disable animation for easier PDF capture
+            animation: false,
             responsive: true,
             maintainAspectRatio: false,
             plugins: { legend: { display: false } },
@@ -203,6 +252,8 @@ function renderReportCharts() {
 
     // Risk Chart
     const riskCtx = document.getElementById('reportRiskChart').getContext('2d');
+    if (reportCharts.risk) reportCharts.risk.destroy();
+
     reportCharts.risk = new Chart(riskCtx, {
         type: 'bar',
         data: {
@@ -236,6 +287,14 @@ function getDateString(daysOffset) {
 function initializeReports() {
     document.getElementById('generate-pdf').addEventListener('click', generatePDFReport);
 
+    const refreshBtn = document.getElementById('refresh-preview');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', () => {
+            updateReportPreview();
+            showToast('Preview updated', 'info');
+        });
+    }
+
     // Download buttons for recent reports
     document.querySelectorAll('.download-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -257,7 +316,6 @@ async function generatePDFReport() {
     await new Promise(resolve => setTimeout(resolve, 500));
 
     // Using jsPDF 
-    // Check for global or namespaced jsPDF (UMD pattern)
     const { jsPDF } = window.jspdf || window;
 
     if (jsPDF) {
@@ -276,32 +334,45 @@ async function generatePDFReport() {
         doc.text(`Generated: ${new Date().toLocaleString()}`, margin, 30);
         doc.line(margin, 35, pageWidth - margin, 35);
 
-        // Summary Stats
-        doc.setFontSize(14);
-        doc.setTextColor(0, 0, 0);
-        doc.text('Executive Summary', margin, 50);
+        let currentY = 50;
 
-        doc.setFontSize(10);
-        doc.setTextColor(60, 60, 60);
-        doc.text('Average Temperature: 24.5°C', margin, 60);
-        doc.text('Average Humidity: 45%', margin + 60, 60);
-        doc.text('Peak Wind Speed: 32.1 km/h', margin, 68);
-        doc.text('Total Alerts: 12', margin + 60, 68);
+        // Summary Stats
+        if (getSectionState('Alert Summary') || getSectionState('Temperature Data')) {
+            doc.setFontSize(14);
+            doc.setTextColor(0, 0, 0);
+            doc.text('Executive Summary', margin, currentY);
+            currentY += 10;
+
+            doc.setFontSize(10);
+            doc.setTextColor(60, 60, 60);
+
+            if (getSectionState('Temperature Data')) doc.text('Average Temperature: 24.5°C', margin, currentY);
+            if (getSectionState('Humidity Levels')) doc.text('Average Humidity: 45%', margin + 60, currentY);
+
+            currentY += 8;
+            if (getSectionState('Wind Speed')) doc.text('Peak Wind Speed: 32.1 km/h', margin, currentY);
+            if (getSectionState('Alert Summary')) doc.text('Total Alerts: 12', margin + 60, currentY);
+
+            currentY += 15;
+        }
 
         // Risk Assessment Text
-        doc.setFontSize(14);
-        doc.setTextColor(0, 0, 0);
-        doc.text('Risk Assessment', margin, 85);
-        doc.setFontSize(10);
-        doc.setTextColor(60, 60, 60);
-        const riskText = 'During the reporting period, the fire risk remained predominantly in the Low to Moderate range. Peak risk occurred recently reaching 45%.';
-        const splitText = doc.splitTextToSize(riskText, activeWidth);
-        doc.text(splitText, margin, 95);
+        if (getSectionState('Fire Risk Analysis')) {
+            doc.setFontSize(14);
+            doc.setTextColor(0, 0, 0);
+            doc.text('Risk Assessment', margin, currentY);
+            currentY += 10;
 
-        let currentY = 110;
+            doc.setFontSize(10);
+            doc.setTextColor(60, 60, 60);
+            const riskText = 'During the reporting period, the fire risk remained predominantly in the Low to Moderate range. Peak risk occurred recently reaching 45%.';
+            const splitText = doc.splitTextToSize(riskText, activeWidth);
+            doc.text(splitText, margin, currentY);
+            currentY += 20;
+        }
 
         // Embed Charts
-        if (reportCharts.temp) {
+        if (getSectionState('Charts & Graphs') && reportCharts.temp) {
             doc.setFontSize(14);
             doc.setTextColor(0, 0, 0);
             doc.text('Visual Analysis', margin, currentY);
@@ -321,7 +392,10 @@ async function generatePDFReport() {
         // Footer credits
         doc.setFontSize(8);
         doc.setTextColor(150, 150, 150);
-        doc.text('Report Generated by ForestGuard System', margin, 280);
+        doc.text('Report Generated by ForestGuard System', margin, 275);
+        doc.setTextColor(59, 130, 246); // Blue link color
+        doc.textWithLink('forestguard.rishabhj.in', margin, 280, { url: 'https://forestguard.rishabhj.in' });
+        doc.setTextColor(150, 150, 150);
         doc.text('Designed & Programmed by Rishabh Joshi', pageWidth - margin - 50, 280);
 
         // Save

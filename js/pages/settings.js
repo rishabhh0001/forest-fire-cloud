@@ -163,6 +163,7 @@ async function renderSettings() {
                         <p>ForestGuard is an advanced environmental monitoring system designed to detect early signs of wildfires and hazardous weather conditions.</p>
                         <br>
                         <p><strong>Version:</strong> 1.0.0</p>
+                        <p><strong>Website:</strong> <a href="https://forestguard.rishabhj.in" target="_blank" style="color: var(--primary-accent); text-decoration: none;">forestguard.rishabhj.in</a></p>
                         <p><strong>Designed & Programmed by:</strong> <span class="highlight-name">Rishabh Joshi</span></p>
                     </div>
                 </div>
@@ -182,10 +183,47 @@ function initializeSettings() {
         });
     });
 
-    // Save buttons
-    document.querySelectorAll('.save-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            // Save Email Settings specifically if it's the notification button
+    // Save buttons logic
+    const saveButtons = document.querySelectorAll('.save-btn');
+
+    // 1. Connection Settings Save
+    if (saveButtons[0]) {
+        saveButtons[0].addEventListener('click', () => {
+            const endpoint = document.getElementById('api-endpoint').value;
+            const rate = document.getElementById('polling-rate').value;
+
+            CONFIG.apiEndpoint = endpoint;
+            CONFIG.pollingRate = parseInt(rate) * 1000;
+
+            // Persist
+            localStorage.setItem('forestGuard_apiEndpoint', endpoint);
+            localStorage.setItem('forestGuard_pollingRate', CONFIG.pollingRate);
+
+            showToast('Connection settings saved', 'success');
+        });
+    }
+
+    // 2. Thresholds Save
+    if (saveButtons[1]) {
+        saveButtons[1].addEventListener('click', () => {
+            const mod = document.getElementById('moderate-threshold').value;
+            const high = document.getElementById('high-threshold').value;
+            const crit = document.getElementById('critical-threshold').value;
+
+            CONFIG.thresholds = {
+                moderate: parseInt(mod),
+                high: parseInt(high),
+                critical: parseInt(crit)
+            };
+
+            localStorage.setItem('forestGuard_thresholds', JSON.stringify(CONFIG.thresholds));
+            showToast('Risk thresholds updated', 'success');
+        });
+    }
+
+    // 3. Notification Settings Save
+    if (saveButtons[2]) {
+        saveButtons[2].addEventListener('click', () => {
             const emailInput = document.getElementById('notification-email');
             if (emailInput && emailInput.value) {
                 localStorage.setItem('forestGuard_email', emailInput.value);
@@ -199,10 +237,25 @@ function initializeSettings() {
                 CONFIG.enableEmailNotifications = emailToggle.checked;
             }
 
-            // Show success message
-            showToast('Settings saved successfully!', 'success');
+            showToast('Notification settings saved', 'success');
         });
-    });
+    }
+
+    // Data Retention Change (Auto-save or add button? User asked for save buttons)
+    // We'll add a specific listener for the dropdown to save immediately for UX, 
+    // or we could add a button. Given the UI pattern, let's add a button above or rely on change.
+    // The user said "retention drop-down is broken", likely meaning it doesn't select or save.
+    const retentionSelect = document.getElementById('data-retention');
+    if (retentionSelect) {
+        // Load saved
+        const savedRetention = localStorage.getItem('forestGuard_retention');
+        if (savedRetention) retentionSelect.value = savedRetention;
+
+        retentionSelect.addEventListener('change', (e) => {
+            localStorage.setItem('forestGuard_retention', e.target.value);
+            showToast(`Retention set to ${e.target.options[e.target.selectedIndex].text}`, 'info');
+        });
+    }
 
     // Load saved settings
     const savedEmail = localStorage.getItem('forestGuard_email');
