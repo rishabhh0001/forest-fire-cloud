@@ -36,7 +36,7 @@ class ForestDB {
         });
     }
 
-    async addReading(data) {
+    async addReading(data, retryCount = 0) {
         // Ensure database is initialized and ready
         if (!this.db) {
             try {
@@ -53,7 +53,7 @@ class ForestDB {
             return false;
         }
 
-        return new Promise((resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
             try {
                 // Add date string for easier indexing
                 const record = {
@@ -68,11 +68,19 @@ class ForestDB {
                 request.onsuccess = () => resolve(true);
                 request.onerror = (e) => {
                     console.warn('Error saving reading:', e);
-                    resolve(false); // Don't reject, just return false
+                    resolve(false);
                 };
             } catch (e) {
-                console.warn('Transaction failed:', e);
-                resolve(false); // Don't reject, just return false
+                // If connection is closed, try to re-init and retry once
+                if (retryCount < 1 && (e.name === 'InvalidStateError' || e.message.includes('closing'))) {
+                    console.log('DB connection closed, retrying...');
+                    this.db = null; // Force re-init
+                    const result = await this.addReading(data, retryCount + 1);
+                    resolve(result);
+                } else {
+                    console.warn('Transaction failed:', e);
+                    resolve(false);
+                }
             }
         });
     }

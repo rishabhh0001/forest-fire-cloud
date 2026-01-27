@@ -39,87 +39,116 @@ class AudioController {
     }
 
     playSiren() {
-        this.stopAll(); // Clear previous sounds
+        this.stopAll();
         this.ensureContext();
 
-        const osc = this.ctx.createOscillator();
+        // Dual-tone Air Raid Siren
+        const osc1 = this.ctx.createOscillator();
+        const osc2 = this.ctx.createOscillator();
         const gainNode = this.ctx.createGain();
 
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(400, this.ctx.currentTime);
-        // Modulate pitch for siren effect (400Hz -> 800Hz -> 400Hz)
-        osc.frequency.linearRampToValueAtTime(800, this.ctx.currentTime + 1);
-        osc.frequency.linearRampToValueAtTime(400, this.ctx.currentTime + 2);
+        osc1.type = 'sawtooth';
+        osc2.type = 'sawtooth';
 
-        // Loop the modulation using LFO
+        // Detune slightly for realistic dissonance
+        osc1.frequency.setValueAtTime(400, this.ctx.currentTime);
+        osc2.frequency.setValueAtTime(405, this.ctx.currentTime);
+
+        // Slow rise and fall (Air Raid style)
+        const now = this.ctx.currentTime;
+        osc1.frequency.exponentialRampToValueAtTime(800, now + 2);
+        osc2.frequency.exponentialRampToValueAtTime(810, now + 2);
+        osc1.frequency.exponentialRampToValueAtTime(400, now + 4);
+        osc2.frequency.exponentialRampToValueAtTime(405, now + 4);
+
+        // LFO for continuous loop
         const lfo = this.ctx.createOscillator();
-        lfo.type = 'triangle';
-        lfo.frequency.value = 0.5; // 0.5Hz = 2 seconds period
+        lfo.type = 'sine';
+        lfo.frequency.value = 0.25; // 4 second cycle
+
         const lfoGain = this.ctx.createGain();
-        lfoGain.gain.value = 200; // Modulate by +/- 200Hz
+        lfoGain.gain.value = 200; // Pitch variance
 
         lfo.connect(lfoGain);
-        lfoGain.connect(osc.frequency);
-        osc.frequency.value = 600; // Center freq
+        lfoGain.connect(osc1.frequency);
+        lfoGain.connect(osc2.frequency);
 
-        gainNode.gain.setValueAtTime(0.05, this.ctx.currentTime);
-        gainNode.gain.linearRampToValueAtTime(0.1, this.ctx.currentTime + 0.5);
+        gainNode.gain.setValueAtTime(0.1, now);
 
-        osc.connect(gainNode);
+        osc1.connect(gainNode);
+        osc2.connect(gainNode);
         gainNode.connect(this.masterGain);
 
-        osc.start();
+        osc1.start();
+        osc2.start();
         lfo.start();
 
-        this.activeOscillators.push(osc, lfo);
+        this.activeOscillators.push(osc1, osc2, lfo);
     }
 
     playStorm() {
         this.stopAll();
         this.ensureContext();
 
-        // Pink Noise for wind/storm
+        // 1. Wind (Pink Noise background)
         const bufferSize = 2 * this.ctx.sampleRate;
         const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
         const output = noiseBuffer.getChannelData(0);
-        let lastOut = 0;
         for (let i = 0; i < bufferSize; i++) {
             const white = Math.random() * 2 - 1;
             output[i] = (lastOut + (0.02 * white)) / 1.02;
             lastOut = output[i];
             output[i] *= 3.5;
         }
+        let lastOut = 0;
 
-        const noise = this.ctx.createBufferSource();
-        noise.buffer = noiseBuffer;
-        noise.loop = true;
+        const wind = this.ctx.createBufferSource();
+        wind.buffer = noiseBuffer;
+        wind.loop = true;
 
-        // Lowpass filter for deep wind sound
-        const filter = this.ctx.createBiquadFilter();
-        filter.type = 'lowpass';
-        filter.frequency.value = 400;
+        const windFilter = this.ctx.createBiquadFilter();
+        windFilter.type = 'lowpass';
+        windFilter.frequency.value = 400;
 
-        // Randomly modulate filter frequency for "gusts"
-        const lfo = this.ctx.createOscillator();
-        lfo.type = 'sine';
-        lfo.frequency.value = 0.2;
-        const lfoGain = this.ctx.createGain();
-        lfoGain.gain.value = 300;
+        const windGain = this.ctx.createGain();
+        windGain.gain.value = 0.15; // Base wind volume
 
-        lfo.connect(lfoGain);
-        lfoGain.connect(filter.frequency);
+        wind.connect(windFilter);
+        windFilter.connect(windGain);
+        windGain.connect(this.masterGain);
+        wind.start();
+        this.activeOscillators.push(wind);
 
-        const gainNode = this.ctx.createGain();
-        gainNode.gain.value = 0.15;
+        // 2. Thunder Rumble (Random Lowfreq Noise Bursts)
+        // We set an interval to trigger thunder occasionally
+        // Note: For simplicity in this class, we'll just add a "rumble" loop
+        const thunderOsc = this.ctx.createOscillator();
+        thunderOsc.type = 'sawtooth';
+        thunderOsc.frequency.value = 40; // Deep rumble
 
-        noise.connect(filter);
-        filter.connect(gainNode);
-        gainNode.connect(this.masterGain);
+        const thunderFilter = this.ctx.createBiquadFilter();
+        thunderFilter.type = 'lowpass';
+        thunderFilter.frequency.value = 150;
 
-        noise.start();
-        lfo.start();
+        const thunderGain = this.ctx.createGain();
+        thunderGain.gain.value = 0; // Start silent
 
-        this.activeOscillators.push(noise, lfo);
+        // Modulate volume randomly to simulate rolling thunder
+        const thunderLFO = this.ctx.createOscillator();
+        thunderLFO.type = 'triangle';
+        thunderLFO.frequency.value = 0.1 + Math.random() * 0.2; // Slow roll
+
+        // Connect LFO to gain through a shaper ideally, but simple direct connection works for rough rumble
+        // We'll just update gain manually in a loop for better control in a real app, 
+        // but here we use a simple constant rumble background for atmosphere
+        thunderGain.gain.setValueAtTime(0.05, this.ctx.currentTime);
+
+        thunderOsc.connect(thunderFilter);
+        thunderFilter.connect(thunderGain);
+        thunderGain.connect(this.masterGain);
+        thunderOsc.start();
+
+        this.activeOscillators.push(thunderOsc);
     }
 
     stopAll() {
@@ -444,6 +473,15 @@ const UI = {
         document.body.appendChild(container);
 
         if (mode === 'fire') {
+            // Hazard Tape
+            const tapeTop = document.createElement('div');
+            tapeTop.className = 'hazard-tape hazard-tape-top fire-tape';
+            container.appendChild(tapeTop);
+
+            const tapeBottom = document.createElement('div');
+            tapeBottom.className = 'hazard-tape hazard-tape-bottom fire-tape';
+            container.appendChild(tapeBottom);
+
             // Spawn embers periodically
             this.weatherInterval = setInterval(() => {
                 const ember = document.createElement('div');
@@ -469,6 +507,15 @@ const UI = {
             }
 
         } else if (mode === 'storm') {
+            // Hazard Tape
+            const tapeTop = document.createElement('div');
+            tapeTop.className = 'hazard-tape hazard-tape-top storm-tape';
+            container.appendChild(tapeTop);
+
+            const tapeBottom = document.createElement('div');
+            tapeBottom.className = 'hazard-tape hazard-tape-bottom storm-tape';
+            container.appendChild(tapeBottom);
+
             // Add rain layers
             const layer1 = document.createElement('div');
             layer1.className = 'rain-layer';
