@@ -821,7 +821,349 @@
     transform: scale(1.1);
 }
 
-/* Mobile Responsive */
+/* Report Type Variants */
+/* Summary Report - Blue theme, card-based KPIs */
+.report-summary .preview-header {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(37, 99, 235, 0.1));
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.report-summary .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.report-summary .kpi-card {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(37, 99, 235, 0.05));
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.3s;
+}
+
+.report-summary .kpi-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.2);
+}
+
+.report-summary .kpi-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #3b82f6;
+    margin-bottom: 0.5rem;
+}
+
+.report-summary .kpi-label {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.report-summary .kpi-trend {
+    font-size: 0.75rem;
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+}
+
+.report-summary .kpi-trend.up {
+    color: var(--success-accent);
+}
+
+.report-summary .kpi-trend.down {
+    color: var(--danger-accent);
+}
+
+.report-summary .preview-section {
+    background: rgba(59, 130, 246, 0.03);
+    border-left: 3px solid #3b82f6;
+}
+
+/* Detailed Analysis - Purple theme, comprehensive data */
+.report-detailed .preview-header {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(124, 58, 237, 0.1));
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.report-detailed .preview-section {
+    background: rgba(139, 92, 246, 0.03);
+    border-left: 3px solid #8b5cf6;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.report-detailed .preview-section h2 {
+    color: #8b5cf6;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.report-detailed .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    background: rgba(139, 92, 246, 0.05);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.report-detailed .data-table th {
+    background: rgba(139, 92, 246, 0.2);
+    padding: 0.75rem;
+    text-align: left;
+    font-weight: 600;
+    color: #8b5cf6;
+    border-bottom: 2px solid rgba(139, 92, 246, 0.3);
+}
+
+.report-detailed .data-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+}
+
+.report-detailed .data-table tr:hover {
+    background: rgba(139, 92, 246, 0.08);
+}
+
+.report-detailed .stat-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background: rgba(139, 92, 246, 0.2);
+    color: #8b5cf6;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/* Alert History - Timeline-based, severity colors */
+.report-alerts .preview-header {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.1));
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.report-alerts .alert-timeline {
+    position: relative;
+    padding-left: 2rem;
+}
+
+.report-alerts .alert-timeline::before {
+    content: '';
+    position: absolute;
+    left: 0.5rem;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, 
+        rgba(239, 68, 68, 0.5), 
+        rgba(245, 158, 11, 0.5), 
+        rgba(59, 130, 246, 0.5));
+}
+
+.report-alerts .alert-item {
+    position: relative;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    border-left: 3px solid transparent;
+    transition: all 0.3s;
+}
+
+.report-alerts .alert-item:hover {
+    transform: translateX(10px);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.report-alerts .alert-item::before {
+    content: '';
+    position: absolute;
+    left: -2.5rem;
+    top: 1rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 8px currentColor;
+}
+
+.report-alerts .alert-item.critical {
+    border-left-color: var(--danger-accent);
+    color: var(--danger-accent);
+}
+
+.report-alerts .alert-item.warning {
+    border-left-color: var(--warning-accent);
+    color: var(--warning-accent);
+}
+
+.report-alerts .alert-item.info {
+    border-left-color: var(--primary-accent);
+    color: var(--primary-accent);
+}
+
+.report-alerts .alert-header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.report-alerts .alert-title-text {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--text-main);
+}
+
+.report-alerts .alert-timestamp {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.report-alerts .alert-description {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-top: 0.5rem;
+}
+
+.report-alerts .severity-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.report-alerts .severity-badge.critical {
+    background: rgba(239, 68, 68, 0.2);
+    color: var(--danger-accent);
+}
+
+.report-alerts .severity-badge.warning {
+    background: rgba(245, 158, 11, 0.2);
+    color: var(--warning-accent);
+}
+
+.report-alerts .severity-badge.info {
+    background: rgba(59, 130, 246, 0.2);
+    color: var(--primary-accent);
+}
+
+/* Custom Report - Green theme, modular sections */
+.report-custom .preview-header {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.1));
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.report-custom .preview-section {
+    background: rgba(16, 185, 129, 0.03);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    transition: all 0.3s;
+}
+
+.report-custom .preview-section:hover {
+    border-color: rgba(16, 185, 129, 0.4);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
+}
+
+.report-custom .preview-section h2 {
+    color: #10b981;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.report-custom .section-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 8px;
+    color: #10b981;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.report-custom .section-toggle:hover {
+    background: rgba(16, 185, 129, 0.2);
+}
+
+.report-custom .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.report-custom .metric-box {
+    background: rgba(16, 185, 129, 0.05);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+}
+
+.report-custom .metric-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #10b981;
+}
+
+.report-custom .metric-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+}
+
+/* Chart containers for reports */
+.report-charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.report-chart-item {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.report-chart-item h3 {
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+    color: var(--text-muted);
+}
+
+.chart-container-sm {
+    height: 200px;
+    position: relative;
+}
+
+
 @media (max-width: 1024px) {
     .analytics-grid {
         grid-template-columns: 1fr;
