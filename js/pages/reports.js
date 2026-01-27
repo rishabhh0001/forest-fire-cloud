@@ -576,3 +576,131 @@ function initializeReports() {
 
 
 
+
+async function generatePDFReport() {
+    const btn = document.getElementById('generate-pdf');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ph ph-spinner"></i> Generating...';
+
+    const reportType = document.getElementById('report-type').value;
+    const today = new Date().toLocaleDateString();
+
+    try {
+        // Ensure charts are rendered first
+        if (document.getElementById('reportTempChart')) {
+            renderReportCharts();
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+
+        // Get the actual preview content
+        const previewBody = document.getElementById('preview-body');
+        const previewSections = previewBody.querySelectorAll('.preview-section, .kpi-grid, .alert-timeline');
+
+        // Create Off-Screen Container for Pagination
+        const container = document.createElement('div');
+        container.className = 'pdf-container-hidden';
+        document.body.appendChild(container);
+
+        // Helper to create a new A4 Page
+        let pageCount = 1;
+        const createPage = () => {
+            const page = document.createElement('div');
+            page.className = 'report-page-a4';
+            page.innerHTML = `
+                <div class="report-page-header">
+                    <h1>ForestGuard Analysis</h1>
+                    <div class="brand">
+                        <i class="ph ph-tree-palm"></i> ForestGuard AI v2.4
+                    </div>
+                </div>
+                <div class="report-content-box" id="page-content-${pageCount}">
+                    <!-- Content injected here -->
+                </div>
+                <div class="report-page-footer">
+                    <span>Generated: ${today}</span>
+                    <span>Report Type: ${reportType.toUpperCase()}</span>
+                    <span>Page ${pageCount}</span>
+                </div>
+            `;
+            container.appendChild(page);
+            pageCount++;
+            return {
+                page,
+                contentBox: page.querySelector('.report-content-box')
+            };
+        };
+
+        // Page 1: Title + First sections
+        let currentPage = createPage();
+        currentPage.contentBox.innerHTML += `
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <h2 style="border:none; font-size: 28px; margin-bottom: 0.5rem;">${reportType.charAt(0).toUpperCase() + reportType.slice(1)} Report</h2>
+                <p style="text-align: center; color: #64748b;">Comprehensive Environmental & Risk Assessment</p>
+            </div>
+        `;
+
+        let currentHeight = 100;
+        const maxPageHeight = 240;
+
+        // Process each section from preview
+        for (let i = 0; i < previewSections.length; i++) {
+            const section = previewSections[i];
+            const sectionClone = section.cloneNode(true);
+
+            // Convert charts to images
+            const canvases = sectionClone.querySelectorAll('canvas');
+            for (const canvas of canvases) {
+                const img = document.createElement('img');
+                const originalCanvas = section.querySelector(`#${canvas.id}`);
+                if (originalCanvas) {
+                    img.src = originalCanvas.toDataURL();
+                    img.style.width = '100%';
+                    img.style.height = 'auto';
+                    canvas.parentNode.replaceChild(img, canvas);
+                }
+            }
+
+            const estimatedHeight = Math.min(sectionClone.textContent.length / 10, 80);
+
+            if (currentHeight + estimatedHeight > maxPageHeight && i > 0) {
+                currentPage = createPage();
+                currentHeight = 0;
+            }
+
+            currentPage.contentBox.appendChild(sectionClone);
+            currentHeight += estimatedHeight;
+        }
+
+        // Generate PDF from Pages
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pages = container.querySelectorAll('.report-page-a4');
+
+        for (let i = 0; i < pages.length; i++) {
+            if (i > 0) pdf.addPage();
+            
+            await new Promise(resolve => setTimeout(resolve, 200));
+
+            const canvas = await html2canvas(pages[i], {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                backgroundColor: '#ffffff'
+            });
+            const imgData = canvas.toDataURL('image/png');
+            pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
+        }
+
+        document.body.removeChild(container);
+        pdf.save(`forestguard-${reportType}-report-${today.replace(/\//g, '-')}.pdf`);
+        showToast('Professional PDF generated!', 'success');
+
+    } catch (error) {
+        console.error('PDF Error', error);
+        showToast('Failed to generate PDF', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+}
