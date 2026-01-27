@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ForestGuard | Fire & Weather Monitoring</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+
+    <!-- Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Leaflet.js for Maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- jsPDF for Report Generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/shared.css">
+    <link rel="stylesheet" href="css/pages.css">
+</head>
+
+<body>
+    <!-- Mobile Nav Toggle -->
+    <button class="mobile-nav-toggle" id="mobile-nav-toggle">
+        <i class="ph ph-list"></i>
+    </button>
+
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar" id="sidebar">
+            <div class="brand">
+                <i class="ph ph-fire-simple brand-icon"></i>
+                <span class="brand-text">ForestGuard</span>
+            </div>
+
+            <ul class="nav-links">
+                <li class="active"><a href="#dashboard"><i class="ph ph-squares-four"></i> <span>Dashboard</span></a>
+                </li>
+                <li><a href="#analytics"><i class="ph ph-chart-line-up"></i> <span>Analytics</span></a></li>
+                <li><a href="#map-view"><i class="ph ph-map-pin"></i> <span>Map View</span></a></li>
+                <li><a href="#alerts"><i class="ph ph-warning"></i> <span>Alerts</span></a></li>
+                <li><a href="#settings"><i class="ph ph-gear"></i> <span>Settings</span></a></li>
+                <li><a href="#reports"><i class="ph ph-file-text"></i> <span>Reports</span></a></li>
+            </ul>
+
+            <div class="status-indicator">
+                <div class="connection-dot"></div>
+                <span>System Online</span>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="location-info">
+                    <h1>Sector A-7 Monitoring</h1>
+                    <span class="subtitle">Lat: 34.0522° N, Long: 118.2437° W</span>
+                </div>
+                <div class="top-actions">
+                    <button class="icon-btn"><i class="ph ph-bell"></i><span class="badge">2</span></button>
+                    <div class="user-profile">
+                        <div class="avatar">OP</div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Container (Dynamic Content) -->
+            <div id="page-container"></div>
+
+            <!-- Global Warning Overlay -->
+            <div id="warning-overlay" class="warning-overlay">
+                <div class="shutter shutter-top"></div>
+                <div class="shutter shutter-bottom"></div>
+                <div class="warning-content">
+                    <i class="ph ph-warning-octagon warning-icon"></i>
+                    <h1 id="warning-text">CRITICAL WARNING</h1>
+                </div>
+            </div>
+
+            <!-- Debug / Test Control Panel -->
+            <div class="debug-panel">
+                <div class="debug-header">
+                    <i class="ph ph-wrench"></i> Simulator Controls
+                </div>
+                <div class="debug-controls">
+                    <button onclick="window.sim.triggerFire()" class="btn-danger">🔥 Trigger Fire</button>
+                    <button onclick="window.sim.triggerStorm()" class="btn-warning">🌪️ Trigger Storm</button>
+                    <button onclick="window.sim.reset()" class="btn-neutral">🔄 Reset System</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Bottom Navigation for Mobile -->
+    <nav class="bottom-nav">
+        <a href="#dashboard" class="active">
+            <i class="ph ph-squares-four"></i>
+            <span>Dashboard</span>
+        </a>
+        <a href="#analytics">
+            <i class="ph ph-chart-line-up"></i>
+            <span>Analytics</span>
+        </a>
+        <a href="#map-view">
+            <i class="ph ph-map-pin"></i>
+            <span>Map</span>
+        </a>
+        <a href="#alerts">
+            <i class="ph ph-warning"></i>
+            <span>Alerts</span>
+        </a>
+        <a href="#settings">
+            <i class="ph ph-gear"></i>
+            <span>Settings</span>
+        </a>
+    </nav>
+
+    <!-- Core Scripts -->
+    <script src="script.js"></script>
+    <script src="js/router.js"></script>
+
+    <!-- Page Scripts -->
+    <script src="js/pages/dashboard.js"></script>
+    <script src="js/pages/analytics.js"></script>
+    <script src="js/pages/map-view.js"></script>
+    <script src="js/pages/alerts.js"></script>
+    <script src="js/pages/settings.js"></script>
+    <script src="js/pages/reports.js"></script>
+
+    <!-- Initialize Router -->
+    <script>
+        // Register all routes
+        router.register('dashboard', renderDashboard);
+        router.register('analytics', renderAnalytics);
+        router.register('map-view', renderMapView);
+        router.register('alerts', renderAlerts);
+        router.register('settings', renderSettings);
+        router.register('reports', renderReports);
+
+        // Mobile navigation toggle
+        document.getElementById('mobile-nav-toggle').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.toggle('mobile-open');
+        });
+
+        // Close sidebar when clicking a link on mobile
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 768) {
+                    document.getElementById('sidebar').classList.remove('mobile-open');
+                }
+            });
+        });
+
+        // Update bottom nav active state
+        window.addEventListener('hashchange', () => {
+            const hash = window.location.hash.slice(1) || 'dashboard';
+            document.querySelectorAll('.bottom-nav a').forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === `#${hash}`) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

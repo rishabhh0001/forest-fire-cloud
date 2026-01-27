@@ -1,0 +1,15 @@
+{
+    "name": "forest-guard",
+    "version": "1.0.0",
+    "description": "Weather and Fire Monitoring Station",
+    "scripts": {
+        "dev": "npx http-server . -c-1 -o"
+    },
+    "keywords": [
+        "weather",
+        "fire",
+        "monitoring"
+    ],
+    "author": "",
+    "license": "ISC"
+}

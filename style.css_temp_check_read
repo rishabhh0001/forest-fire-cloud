@@ -1,0 +1,110 @@
+/* ... (Previous CSS remains, appending new styles) ... */
+
+/* Red Alert State - Global Overlay */
+body.red-alert {
+    background-image: 
+        radial-gradient(circle at 50% 50%, rgba(239, 68, 68, 0.2) 0%, transparent 60%),
+        repeating-linear-gradient(
+            45deg,
+            rgba(0, 0, 0, 0.1),
+            rgba(0, 0, 0, 0.1) 10px,
+            rgba(239, 68, 68, 0.05) 10px,
+            rgba(239, 68, 68, 0.05) 20px
+        );
+    animation: alertPulse 2s infinite;
+}
+
+body.red-alert .sidebar {
+    border-right-color: rgba(239, 68, 68, 0.4);
+}
+
+body.red-alert .card {
+    border-color: rgba(239, 68, 68, 0.3);
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.1);
+}
+
+@keyframes alertPulse {
+    0% { box-shadow: inset 0 0 0px rgba(239, 68, 68, 0); }
+    50% { box-shadow: inset 0 0 50px rgba(239, 68, 68, 0.3); }
+    100% { box-shadow: inset 0 0 0px rgba(239, 68, 68, 0); }
+}
+
+/* Debug Panel */
+.debug-panel {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: rgba(15, 17, 26, 0.95);
+    border: 1px solid var(--bg-card-border);
+    padding: 1rem;
+    border-radius: 12px;
+    z-index: 1000;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    backdrop-filter: blur(10px);
+    width: 250px;
+}
+
+.debug-header {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.debug-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.debug-controls button {
+    padding: 0.6rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+    font-family: var(--font-main);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.btn-danger {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--danger-accent);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.btn-danger:hover {
+    background: var(--danger-accent);
+    color: white;
+}
+
+.btn-warning {
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--warning-accent);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.btn-warning:hover {
+    background: var(--warning-accent);
+    color: white;
+}
+
+.btn-neutral {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-muted);
+    border: 1px solid var(--bg-card-border);
+}
+
+.btn-neutral:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-main);
+}
