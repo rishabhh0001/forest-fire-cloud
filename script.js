@@ -404,6 +404,7 @@ const UI = {
 
             this.triggerWarningText();
             audio.playSiren();
+            this.startWeatherEffects('fire');
 
             // Auto-dismiss overlay but keep alert state
             this.overlayTimeout = setTimeout(() => {
@@ -419,6 +420,7 @@ const UI = {
 
             this.triggerWarningText();
             audio.playStorm();
+            this.startWeatherEffects('storm');
 
             // Auto-dismiss overlay but keep alert state
             this.overlayTimeout = setTimeout(() => {
@@ -427,6 +429,79 @@ const UI = {
 
         } else {
             audio.stopAll();
+            this.stopWeatherEffects();
+        }
+    },
+
+    // Weather Effects System
+    weatherInterval: null,
+
+    startWeatherEffects(mode) {
+        this.stopWeatherEffects(); // Clear existing
+
+        const container = document.createElement('div');
+        container.id = 'weather-effects';
+        document.body.appendChild(container);
+
+        if (mode === 'fire') {
+            // Spawn embers periodically
+            this.weatherInterval = setInterval(() => {
+                const ember = document.createElement('div');
+                ember.className = 'ember';
+                ember.style.left = Math.random() * 100 + 'vw';
+                ember.style.animationDuration = (2 + Math.random() * 3) + 's';
+                ember.style.opacity = Math.random();
+                container.appendChild(ember);
+
+                // Cleanup ember after animation
+                setTimeout(() => ember.remove(), 5000);
+            }, 100);
+
+            // Initial burst
+            for (let i = 0; i < 20; i++) {
+                const ember = document.createElement('div');
+                ember.className = 'ember';
+                ember.style.left = Math.random() * 100 + 'vw';
+                ember.style.animationDuration = (2 + Math.random() * 3) + 's';
+                ember.style.bottom = Math.random() * 50 + 'vh'; // Start higher up
+                container.appendChild(ember);
+                setTimeout(() => ember.remove(), 4000);
+            }
+
+        } else if (mode === 'storm') {
+            // Add rain layers
+            const layer1 = document.createElement('div');
+            layer1.className = 'rain-layer';
+            container.appendChild(layer1);
+
+            const layer2 = document.createElement('div');
+            layer2.className = 'rain-layer';
+            container.appendChild(layer2);
+
+            // Lightning overlay
+            const lightning = document.createElement('div');
+            lightning.className = 'lightning-flash';
+            container.appendChild(lightning);
+
+            // Random lightning strikes
+            this.weatherInterval = setInterval(() => {
+                if (Math.random() > 0.7) { // 30% chance per second approx
+                    setTimeout(() => {
+                        lightning.classList.add('lightning-active');
+                        setTimeout(() => lightning.classList.remove('lightning-active'), 300);
+                    }, Math.random() * 1000);
+                }
+            }, 1000);
+        }
+    },
+
+    stopWeatherEffects() {
+        const container = document.getElementById('weather-effects');
+        if (container) container.remove();
+
+        if (this.weatherInterval) {
+            clearInterval(this.weatherInterval);
+            this.weatherInterval = null;
         }
     },
 

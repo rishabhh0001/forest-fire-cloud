@@ -150,6 +150,24 @@
     <script src="js/db.js"></script>
     <script src="js/components/dropdown.js"></script>
     <script src="js/router.js"></script>
+    <!-- Debug Control Panel -->
+    <div class="debug-panel">
+        <div class="debug-header">
+            <i class="ph ph-terminal-window"></i> Simulation Controls
+        </div>
+        <div class="debug-controls">
+            <button class="btn-danger" onclick="window.sim.triggerFire()">
+                <i class="ph ph-fire"></i> Trigger Fire
+            </button>
+            <button class="btn-warning" onclick="window.sim.triggerStorm()">
+                <i class="ph ph-cloud-rain"></i> Trigger Storm
+            </button>
+            <button class="btn-neutral" onclick="window.sim.reset()">
+                <i class="ph ph-arrow-counter-clockwise"></i> Reset Normal
+            </button>
+        </div>
+    </div>
+
     <script src="script.js"></script>
     <script src="js/pages/dashboard.js"></script>
     <script src="js/pages/analytics.js"></script>
