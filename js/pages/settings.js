@@ -92,8 +92,15 @@ async function renderSettings() {
                             <span class="toggle-slider"></span>
                         </label>
                     </div>
+                    <div class="form-group toggle-group">
+                        <label>Email Alerts</label>
+                        <label class="toggle">
+                            <input type="checkbox" id="email-notifications">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
                     <div class="form-group">
-                        <label>Email Notifications</label>
+                        <label>Recipient Email</label>
                         <input type="email" id="notification-email" placeholder="your@email.com">
                     </div>
                     <button class="save-btn">
@@ -163,13 +170,53 @@ function initializeSettings() {
     // Save buttons
     document.querySelectorAll('.save-btn').forEach(btn => {
         btn.addEventListener('click', () => {
+            // Save Email Settings specifically if it's the notification button
+            const emailInput = document.getElementById('notification-email');
+            if (emailInput && emailInput.value) {
+                localStorage.setItem('forestGuard_email', emailInput.value);
+                CONFIG.emailAddress = emailInput.value;
+            }
+
+            // Save Notification Preferences
+            const emailToggle = document.getElementById('email-notifications');
+            if (emailToggle) {
+                localStorage.setItem('forestGuard_emailEnabled', emailToggle.checked);
+                CONFIG.enableEmailNotifications = emailToggle.checked;
+            }
+
             // Show success message
             showToast('Settings saved successfully!', 'success');
         });
     });
 
+    // Load saved settings
+    const savedEmail = localStorage.getItem('forestGuard_email');
+    if (savedEmail) {
+        const emailInput = document.getElementById('notification-email');
+        if (emailInput) emailInput.value = savedEmail;
+        CONFIG.emailAddress = savedEmail;
+    }
+
+    // Email Notification Toggle Listener
+    const emailToggle = document.getElementById('email-notifications');
+    if (emailToggle) {
+        // Load saved state
+        const savedState = localStorage.getItem('forestGuard_emailEnabled') === 'true';
+        emailToggle.checked = savedState;
+        CONFIG.enableEmailNotifications = savedState;
+
+        emailToggle.addEventListener('change', (e) => {
+            CONFIG.enableEmailNotifications = e.target.checked;
+            localStorage.setItem('forestGuard_emailEnabled', e.target.checked);
+            if (e.target.checked && !CONFIG.emailAddress) {
+                showToast('Please enter an email address', 'warning');
+            }
+        });
+    }
+
     // Connection mode
     document.querySelectorAll('input[name="mode"]').forEach(radio => {
+
         radio.addEventListener('change', (e) => {
             CONFIG.useLiveData = e.target.value === 'live';
             showToast(`Switched to ${e.target.value} mode`, 'info');

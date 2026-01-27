@@ -13,7 +13,9 @@ const CONFIG = {
         high: 70,
         extreme: 90
     },
-    enableNotifications: false
+    enableNotifications: false,
+    enableEmailNotifications: false,
+    emailAddress: null
 };
 
 /**
@@ -413,9 +415,38 @@ const UI = {
         if (CONFIG.enableNotifications && 'Notification' in window && Notification.permission === 'granted') {
             new Notification('ForestGuard Alert', {
                 body: `${title} - ${source}`,
-                icon: 'https://cdn-icons-png.flaticon.com/512/595/595067.png' // Generic fire icon
+                icon: 'https://cdn-icons-png.flaticon.com/512/595/595067.png'
             });
         }
+
+        // Email Notification
+        if (CONFIG.enableEmailNotifications && CONFIG.emailAddress) {
+            this.sendEmailAlert(title, source, type);
+        }
+    },
+
+    // Mock Email Service (Rate limited to avoid spamming toast)
+    lastEmailTime: 0,
+
+    sendEmailAlert(title, source, type) {
+        const now = Date.now();
+        if (now - this.lastEmailTime < 10000) return; // Limit to 1 email per 10s
+
+        this.lastEmailTime = now;
+
+        console.log(`[EmailService] Sending alert to ${CONFIG.emailAddress}: ${title}`);
+
+        // Show a discrete toast to indicate "Email Sent" behavior
+        const toast = document.createElement('div');
+        toast.className = 'toast toast-success';
+        toast.innerHTML = `<i class="ph ph-envelope-simple"></i> Email sent to ${CONFIG.emailAddress}`;
+        document.body.appendChild(toast);
+
+        setTimeout(() => toast.classList.add('show'), 100);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
     },
 
     animateValue(obj, start, end, duration) {
