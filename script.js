@@ -12,7 +12,8 @@ const CONFIG = {
         moderate: 40,
         high: 70,
         extreme: 90
-    }
+    },
+    enableNotifications: false
 };
 
 /**
@@ -332,6 +333,7 @@ const UI = {
             overlayText.innerText = 'CRITICAL FIRE WARNING';
             overlayText.style.color = '#ef4444';
             overlayText.style.textShadow = '0 0 20px #ef4444';
+            this.triggerWarningText();
             audio.playSiren();
         } else if (mode === 'storm') {
             body.classList.add('storm-alert');
@@ -339,10 +341,27 @@ const UI = {
             overlayText.innerText = 'STORM SURGE WARNING';
             overlayText.style.color = '#3b82f6';
             overlayText.style.textShadow = '0 0 20px #3b82f6';
+            this.triggerWarningText();
             audio.playStorm();
         } else {
             audio.stopAll();
         }
+    },
+
+    triggerWarningText() {
+        const content = document.querySelector('.warning-content');
+        if (!content) return;
+
+        // Reset animation
+        content.classList.remove('retract');
+
+        // Clear existing timeout if any
+        if (this.warningTimeout) clearTimeout(this.warningTimeout);
+
+        // Retract text after 4 seconds
+        this.warningTimeout = setTimeout(() => {
+            content.classList.add('retract');
+        }, 4000);
     },
 
     updateChart(newTemp) {
@@ -389,6 +408,14 @@ const UI = {
             </div>
         `;
         this.elements.alertsList.prepend(item);
+
+        // Browser Notification
+        if (CONFIG.enableNotifications && 'Notification' in window && Notification.permission === 'granted') {
+            new Notification('ForestGuard Alert', {
+                body: `${title} - ${source}`,
+                icon: 'https://cdn-icons-png.flaticon.com/512/595/595067.png' // Generic fire icon
+            });
+        }
     },
 
     animateValue(obj, start, end, duration) {

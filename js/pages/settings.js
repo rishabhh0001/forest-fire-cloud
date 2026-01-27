@@ -187,6 +187,32 @@ function initializeSettings() {
             showToast('All data cleared', 'warning');
         }
     });
+
+    // Browser Notification Toggle
+    const notifyToggle = document.getElementById('browser-notifications');
+    notifyToggle.addEventListener('change', (e) => {
+        if (e.target.checked) {
+            if (!('Notification' in window)) {
+                showToast('This browser does not support notifications', 'error');
+                e.target.checked = false;
+            } else if (Notification.permission !== 'granted') {
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        showToast('Notifications enabled', 'success');
+                        CONFIG.enableNotifications = true;
+                    } else {
+                        e.target.checked = false;
+                        showToast('Permission denied', 'error');
+                    }
+                });
+            } else {
+                CONFIG.enableNotifications = true;
+                showToast('Notifications enabled', 'success');
+            }
+        } else {
+            CONFIG.enableNotifications = false;
+        }
+    });
 }
 
 function showToast(message, type = 'info') {

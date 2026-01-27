@@ -186,8 +186,11 @@ async function generatePDFReport() {
     // Simulate PDF generation delay
     await new Promise(resolve => setTimeout(resolve, 1500));
 
-    // Using jsPDF (would need to be included via CDN)
-    if (typeof jsPDF !== 'undefined') {
+    // Using jsPDF 
+    // Check for global or namespaced jsPDF (UMD pattern)
+    const { jsPDF } = window.jspdf || window;
+
+    if (jsPDF) {
         const doc = new jsPDF();
 
         // Header

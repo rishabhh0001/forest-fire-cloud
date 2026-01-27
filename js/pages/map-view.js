@@ -137,4 +137,23 @@ function initializeMap() {
             }
         });
     });
+    // Heatmap Layer (Simulated Fire Risk)
+    // Points: [lat, lng, intensity]
+    const heatPoints = [
+        [28.7041, 77.1025, 0.5], // Sensor 1
+        [28.7141, 77.1125, 0.8], // Sensor 2 (Warning)
+        [28.6941, 77.0925, 0.2], // Sensor 3
+        // Random Hotspots
+        [28.7091, 77.1075, 0.6],
+        [28.7001, 77.0985, 0.4]
+    ];
+
+    if (L.heatLayer) {
+        const heat = L.heatLayer(heatPoints, {
+            radius: 25,
+            blur: 15,
+            maxZoom: 17,
+            gradient: { 0.4: 'blue', 0.65: 'lime', 1: 'red' }
+        }).addTo(map);
+    }
 }

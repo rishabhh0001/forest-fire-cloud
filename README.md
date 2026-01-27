@@ -142,7 +142,7 @@ Edit `script.js`:
 const CONFIG = {
     riskThresholds: {
         moderate: 40,  // Moderate risk starts at 40%
-        high: 70,      // High risk starts at 70%
+        high: 75,      // High risk starts at 70%
         extreme: 90    // Extreme risk starts at 90%
     }
 };
@@ -153,9 +153,9 @@ Edit `style.css`:
 ```css
 :root {
     --primary-accent: #3b82f6;  /* Blue */
-    --danger-accent: #ef4444;   /* Red */
+    --danger-accent: #ff3131ff;   /* Red */
     --warning-accent: #f59e0b;  /* Amber */
-    --success-accent: #10b981;  /* Green */
+    --success-accent: #0ac156ff;  /* Green */
 }
 ```
 

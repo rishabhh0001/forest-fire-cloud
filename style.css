@@ -98,6 +98,36 @@ body.storm-alert {
     transform: translateY(0);
 }
 
+.warning-content {
+    opacity: 0;
+    transform: scale(0.9);
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.warning-overlay.active .warning-content {
+    opacity: 1;
+    transform: scale(1);
+    /* Stay visible by default, script will add .retract */
+}
+
+.warning-content.retract {
+    animation: textRetract 0.8s forwards;
+    animation-delay: 0s;
+    /* Immediate retraction when class is added */
+}
+
+@keyframes textRetract {
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    to {
+        opacity: 0;
+        transform: scale(1.1);
+    }
+}
+
 /* Storm Theme Shutters */
 body.storm-alert .shutter-top,
 body.storm-alert .shutter-bottom {
