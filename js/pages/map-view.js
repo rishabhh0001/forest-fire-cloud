@@ -65,10 +65,10 @@ async function renderMapView() {
                     <i class="ph ph-caret-right"></i>
                 </div>
                 <div class="sensor-item" data-sensor="3">
-                    <div class="sensor-status status-normal"></div>
+                    <div class="sensor-status status-critical"></div>
                     <div class="sensor-info">
                         <h3>Sensor Array 3</h3>
-                        <p>Forest Zone C • 26.8°C • 52% Humidity</p>
+                        <p>Forest Zone C • 34.8°C • 52% Humidity</p>
                     </div>
                     <i class="ph ph-caret-right"></i>
                 </div>
@@ -81,7 +81,7 @@ async function renderMapView() {
 
 function initializeMap() {
     // Initialize Leaflet map
-    const map = L.map('leaflet-map').setView([28.7041, 77.1025], 16);
+    const map = L.map('leaflet-map').setView([28.526455, 77.574276], 16);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap',
@@ -117,14 +117,14 @@ function initializeMap() {
 
         // Pulse animation
         setInterval(() => {
-            marker.setRadius(marker.getRadius() === 10 ? 12 : 10);
+            marker.setRadius(marker.getRadius() === 8 ? 12 : 8);
         }, 1000);
     });
 
     // Map controls
     document.getElementById('zoom-in').addEventListener('click', () => map.zoomIn());
     document.getElementById('zoom-out').addEventListener('click', () => map.zoomOut());
-    document.getElementById('reset-view').addEventListener('click', () => map.setView([28.7041, 77.1025], 13));
+    document.getElementById('reset-view').addEventListener('click', () => map.setView([28.526455, 77.574276], 16));
 
     // Sensor list interactions
     document.querySelectorAll('.sensor-item').forEach(item => {
@@ -139,12 +139,12 @@ function initializeMap() {
     // Heatmap Layer (Simulated Fire Risk)
     // Points: [lat, lng, intensity]
     const heatPoints = [
-        [28.7041, 77.1025, 0.5], // Sensor 1
-        [28.7141, 77.1125, 0.8], // Sensor 2 (Warning)
-        [28.6941, 77.0925, 0.2], // Sensor 3
+        [28.527577, 77.575765, 0.5], // Sensor 1
+        [28.526361, 77.575937, 0.8], // Sensor 2 (Warning)
+        [28.525871, 77.572525, 0.2], // Sensor 3
         // Random Hotspots
-        [28.7091, 77.1075, 1.6],
-        [28.7001, 77.0985, 2.4]
+        [28.526591, 77.574875, 1.0],
+        [28.526001, 77.573685, 1.4]
     ];
 
     if (L.heatLayer) {
@@ -152,7 +152,7 @@ function initializeMap() {
             radius: 25,
             blur: 15,
             maxZoom: 17,
-            gradient: { 0.4: 'blue', 0.65: 'lime', 1: 'red' }
+            gradient: { 0.3: 'blue', 0.6: 'lime', 1: 'red' }
         }).addTo(map);
     }
 }
