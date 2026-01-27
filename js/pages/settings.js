@@ -162,7 +162,7 @@ async function renderSettings() {
                     <div class="about-content">
                         <p>ForestGuard is an advanced environmental monitoring system designed to detect early signs of wildfires and hazardous weather conditions.</p>
                         <br>
-                        <p><strong>Version:</strong> 1.0.0</p>
+                        <p><strong>Version:</strong> 2.4.0</p>
                         <p><strong>Website:</strong> <a href="https://forestguard.rishabhj.in" target="_blank" style="color: var(--primary-accent); text-decoration: none;">forestguard.rishabhj.in</a></p>
                         <p><strong>Designed & Programmed by:</strong> <span class="highlight-name">Rishabh Joshi</span></p>
                     </div>
