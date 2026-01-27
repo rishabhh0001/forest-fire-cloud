@@ -37,37 +37,81 @@ class ForestDB {
     }
 
     async addReading(data) {
-        if (!this.db) await this.init();
+        // Ensure database is initialized and ready
+        if (!this.db) {
+            try {
+                await this.init();
+            } catch (e) {
+                console.error('Failed to initialize database:', e);
+                return false;
+            }
+        }
+
+        // Double-check database is still open
+        if (!this.db || this.db.objectStoreNames.length === 0) {
+            console.warn('Database not ready, skipping write');
+            return false;
+        }
+
         return new Promise((resolve, reject) => {
-            // Add date string for easier indexing
-            const record = {
-                ...data,
-                date: new Date(data.timestamp).toISOString().split('T')[0]
-            };
+            try {
+                // Add date string for easier indexing
+                const record = {
+                    ...data,
+                    date: new Date(data.timestamp).toISOString().split('T')[0]
+                };
 
-            const transaction = this.db.transaction(['readings'], 'readwrite');
-            const store = transaction.objectStore('readings');
-            const request = store.add(record);
+                const transaction = this.db.transaction(['readings'], 'readwrite');
+                const store = transaction.objectStore('readings');
+                const request = store.add(record);
 
-            request.onsuccess = () => resolve(true);
-            request.onerror = () => reject('Error saving reading');
+                request.onsuccess = () => resolve(true);
+                request.onerror = (e) => {
+                    console.warn('Error saving reading:', e);
+                    resolve(false); // Don't reject, just return false
+                };
+            } catch (e) {
+                console.warn('Transaction failed:', e);
+                resolve(false); // Don't reject, just return false
+            }
         });
     }
 
     async getReadings(days = 7) {
-        if (!this.db) await this.init();
+        if (!this.db) {
+            try {
+                await this.init();
+            } catch (e) {
+                console.error('Failed to initialize database:', e);
+                return [];
+            }
+        }
+
+        if (!this.db || this.db.objectStoreNames.length === 0) {
+            console.warn('Database not ready');
+            return [];
+        }
+
         const cutoffDate = new Date();
         cutoffDate.setDate(cutoffDate.getDate() - days);
         const cutoffString = cutoffDate.toISOString();
 
         return new Promise((resolve, reject) => {
-            const transaction = this.db.transaction(['readings'], 'readonly');
-            const store = transaction.objectStore('readings');
-            const range = IDBKeyRange.lowerBound(cutoffString);
-            const request = store.getAll(range);
+            try {
+                const transaction = this.db.transaction(['readings'], 'readonly');
+                const store = transaction.objectStore('readings');
+                const range = IDBKeyRange.lowerBound(cutoffString);
+                const request = store.getAll(range);
 
-            request.onsuccess = () => resolve(request.result);
-            request.onerror = () => reject('Error fetching readings');
+                request.onsuccess = () => resolve(request.result || []);
+                request.onerror = (e) => {
+                    console.warn('Error fetching readings:', e);
+                    resolve([]); // Return empty array instead of rejecting
+                };
+            } catch (e) {
+                console.warn('Transaction failed:', e);
+                resolve([]);
+            }
         });
     }
 
@@ -102,9 +146,18 @@ class ForestDB {
 
 // Export a singleton instance
 const db = new ForestDB();
-// Initialize immediately
-db.init().catch(console.error);
 
+// Initialize when DOM is ready to prevent timing issues
 if (typeof window !== 'undefined') {
     window.db = db;
+
+    // Initialize database when page loads
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            db.init().catch(e => console.warn('DB init delayed:', e));
+        });
+    } else {
+        // DOM already loaded
+        db.init().catch(e => console.warn('DB init delayed:', e));
+    }
 }
