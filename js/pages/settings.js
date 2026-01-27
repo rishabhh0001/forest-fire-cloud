@@ -274,11 +274,10 @@ function initializeSettings() {
         } else {
             CONFIG.enableNotifications = false;
         }
-    }
     });
 
-// Initialize custom dropdowns
-if (window.initCustomDropdowns) window.initCustomDropdowns();
+    // Initialize custom dropdowns
+    if (window.initCustomDropdowns) window.initCustomDropdowns();
 }
 
 function showToast(message, type = 'info') {

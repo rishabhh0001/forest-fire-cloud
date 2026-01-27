@@ -121,16 +121,17 @@ async function initializeAnalytics() {
 
 
     // Temperature Chart
-    createTrendChart('tempTrendChart', 'Temperature (°C)', historicalData.map(d => d.temp), '#ef4444');
+    const labels = historicalData.map(d => d.date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }));
+    createTrendChart('tempTrendChart', 'Temperature (°C)', labels, historicalData.map(d => d.temp), '#ef4444');
 
     // Humidity Chart
-    createTrendChart('humidityTrendChart', 'Humidity (%)', historicalData.map(d => d.humidity), '#3b82f6');
+    createTrendChart('humidityTrendChart', 'Humidity (%)', labels, historicalData.map(d => d.humidity), '#3b82f6');
 
     // Wind Speed Chart
-    createTrendChart('windTrendChart', 'Wind Speed (km/h)', historicalData.map(d => d.wind), '#10b981');
+    createTrendChart('windTrendChart', 'Wind Speed (km/h)', labels, historicalData.map(d => d.wind), '#10b981');
 
     // Risk Chart
-    createTrendChart('riskTrendChart', 'Risk Score (%)', historicalData.map(d => d.risk), '#f59e0b');
+    createTrendChart('riskTrendChart', 'Risk Score (%)', labels, historicalData.map(d => d.risk), '#f59e0b');
 
     // Calculate stats
     const avgTemp = (historicalData.reduce((sum, d) => sum + d.temp, 0) / historicalData.length).toFixed(1);
@@ -155,7 +156,15 @@ async function initializeAnalytics() {
             e.target.classList.add('active');
             const range = parseInt(e.target.dataset.range);
             // Reload charts with new range
-            const newData = generateHistoricalData(range);
+            // Note: We need to regenerate data based on range
+            let newData = [];
+            if (window.db) {
+                // Fetch valid range from DB logic or mock
+                newData = generateHistoricalData(range);
+                // ideally we obey DB if present, but updateAllCharts handles that check too
+            } else {
+                newData = generateHistoricalData(range);
+            }
             updateAllCharts(newData);
         });
     });
@@ -168,7 +177,9 @@ async function initializeAnalytics() {
 
 function generateHistoricalData(days) {
     const data = [];
-    for (let i = days; i >= 0; i--) {
+    const interval = days > 30 ? (days > 60 ? 3 : 2) : 1; // Reduce density for large ranges
+
+    for (let i = days; i >= 0; i -= interval) {
         data.push({
             date: new Date(Date.now() - i * 24 * 60 * 60 * 1000),
             temp: 20 + Math.random() * 10,
@@ -183,8 +194,8 @@ function generateHistoricalData(days) {
 function processReadingsForCharts(readings) {
     // Group by day or hour depending on density
     // For this implementation, we map directly to chart format
-    // taking the last 30 points max to avoid overcrowding
-    return readings.slice(-30).map(r => ({
+    // taking the last N points to match range logic if possible
+    return readings.slice(-90).map(r => ({
         date: new Date(r.timestamp),
         temp: r.temperature,
         humidity: r.humidity,
@@ -193,7 +204,7 @@ function processReadingsForCharts(readings) {
     }));
 }
 
-function createTrendChart(canvasId, label, data, color) {
+function createTrendChart(canvasId, label, labels, data, color) {
     const ctx = document.getElementById(canvasId).getContext('2d');
     const gradient = ctx.createLinearGradient(0, 0, 0, 300);
     gradient.addColorStop(0, color + '80');
@@ -202,7 +213,7 @@ function createTrendChart(canvasId, label, data, color) {
     new Chart(ctx, {
         type: 'line',
         data: {
-            labels: data.map((_, i) => `Day ${i + 1}`),
+            labels: labels,
             datasets: [{
                 label: label,
                 data: data,
@@ -211,7 +222,7 @@ function createTrendChart(canvasId, label, data, color) {
                 borderWidth: 2,
                 tension: 0.4,
                 fill: true,
-                pointRadius: 3,
+                pointRadius: data.length > 30 ? 1 : 3, // Smaller dots for dense data
                 pointHoverRadius: 5
             }]
         },
@@ -220,7 +231,11 @@ function createTrendChart(canvasId, label, data, color) {
             maintainAspectRatio: false,
             plugins: { legend: { display: false } },
             scales: {
-                x: { display: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+                x: {
+                    display: true,
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    ticks: { maxTicksLimit: 8 } // Prevent crowding 
+                },
                 y: { display: true, grid: { color: 'rgba(255,255,255,0.05)' } }
             }
         }
@@ -247,12 +262,8 @@ function exportToCSV(data) {
     a.click();
 }
 
-async function updateAllCharts(newData) { // Note: newData param is passed but we might want to fetch fresh from DB based on range
+async function updateAllCharts(newData) {
     console.log('Updating charts...');
-
-    // If we have a DB, ignore the passed mock data and fetch real data
-    // The event listener passed 'newData' which was mock data. 
-    // We should refactor the event listener to pass the 'range' instead, but for now let's just use the range from the active button or just re-fetch.
 
     const activeBtn = document.querySelector('.time-range-selector .active');
     const range = activeBtn ? parseInt(activeBtn.dataset.range) : 7;
@@ -266,16 +277,18 @@ async function updateAllCharts(newData) { // Note: newData param is passed but w
         }
     }
 
-    // Fallback to mock if empty
+    // Fallback if empty (use the passed newData if it was generated, or generate for range)
     if (chartData.length === 0) {
-        chartData = generateHistoricalData(range);
+        chartData = newData && newData.length > 0 ? newData : generateHistoricalData(range);
     }
+
+    // Generate Labels
+    const labels = chartData.map(d => d.date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }));
 
     // Destroy old charts to prevent memory leaks / artifacts
     ['tempTrendChart', 'humidityTrendChart', 'windTrendChart', 'riskTrendChart'].forEach(id => {
         const title = Chart.getChart(id)?.config.data.datasets[0].label;
         const color = Chart.getChart(id)?.config.data.datasets[0].borderColor;
-        const ctx = document.getElementById(id).getContext('2d');
 
         // Destroy existing
         const existing = Chart.getChart(id);
@@ -288,7 +301,7 @@ async function updateAllCharts(newData) { // Note: newData param is passed but w
         else if (id.includes('wind')) dataMap = d => d.wind;
         else dataMap = d => d.risk;
 
-        createTrendChart(id, title, chartData.map(dataMap), color);
+        createTrendChart(id, title, labels, chartData.map(dataMap), color);
     });
 
     // Update Summary Stats

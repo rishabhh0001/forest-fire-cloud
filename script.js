@@ -487,7 +487,92 @@ const UI = {
         }
     },
 
+    // Notification Center Logic
+    initNotifications() {
+        const btn = document.getElementById('notification-btn');
+        const dropdown = document.getElementById('notification-dropdown');
+        const clearBtn = document.getElementById('clear-notifications');
+
+        if (btn && dropdown) {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                dropdown.classList.toggle('active');
+
+                // Reset badge on open
+                if (dropdown.classList.contains('active')) {
+                    this.resetBadge();
+                }
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!dropdown.contains(e.target) && !btn.contains(e.target)) {
+                    dropdown.classList.remove('active');
+                }
+            });
+        }
+
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => {
+                const list = document.getElementById('notification-list');
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <i class="ph ph-bell-slash"></i>
+                        <p>No new notifications</p>
+                    </div>
+                `;
+                this.notificationCount = 0;
+                this.updateBadge();
+            });
+        }
+    },
+
+    notificationCount: 0,
+
+    addToNotificationCenter(title, source, type) {
+        const list = document.getElementById('notification-list');
+        const emptyState = list.querySelector('.empty-state');
+        if (emptyState) emptyState.remove();
+
+        const item = document.createElement('div');
+        item.className = `notification-item ${type}`;
+        item.innerHTML = `
+            <i class="ph ${type === 'danger' ? 'ph-warning-octagon' : (type === 'warning' ? 'ph-warning' : 'ph-info')}"></i>
+            <div class="notif-content">
+                <h4>${title}</h4>
+                <p>${source} · Just now</p>
+            </div>
+        `;
+
+        list.prepend(item);
+
+        // Increment badge if dropdown closed
+        const dropdown = document.getElementById('notification-dropdown');
+        if (!dropdown.classList.contains('active')) {
+            this.notificationCount++;
+            this.updateBadge();
+        }
+    },
+
+    updateBadge() {
+        const badge = document.getElementById('notification-badge');
+        if (badge) {
+            if (this.notificationCount > 0) {
+                badge.style.display = 'flex';
+                badge.innerText = this.notificationCount > 9 ? '9+' : this.notificationCount;
+                badge.classList.add('pulse-badge'); // We can add animation if needed
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+    },
+
+    resetBadge() {
+        this.notificationCount = 0;
+        this.updateBadge();
+    },
+
     addAlert(title, source, type, listElement) {
+        // UI Dashboard Alert List
         const item = document.createElement('div');
         item.className = `alert-item ${type}`;
         item.innerHTML = `
@@ -498,6 +583,9 @@ const UI = {
             </div>
         `;
         listElement.prepend(item);
+
+        // Add to Notification Center (Bell Icon)
+        this.addToNotificationCenter(title, source, type);
 
         this.sendBackgroundNotification(title, source, type);
     },
@@ -561,7 +649,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // We bind it to any click for now, or the debug buttons will handle it.
     document.addEventListener('click', () => audio.ensureContext(), { once: true });
 
-
+    UI.initNotifications();
 
     dataService.getSensorData().then(data => UI.updateDashboard(data));
 
