@@ -81,23 +81,22 @@ async function renderMapView() {
 
 function initializeMap() {
     // Initialize Leaflet map
-    const map = L.map('leaflet-map').setView([28.7041, 77.1025], 13);
+    const map = L.map('leaflet-map').setView([28.7041, 77.1025], 16);
 
-    // Add OpenStreetMap tiles
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
+        attribution: '© OpenStreetMap',
         maxZoom: 19
     }).addTo(map);
 
     // Add sensor markers
     const sensors = [
-        { id: 1, lat: 28.7041, lng: 77.1025, status: 'normal', name: 'Sensor Array 1' },
-        { id: 2, lat: 28.7141, lng: 77.1125, status: 'warning', name: 'Sensor Array 2' },
-        { id: 3, lat: 28.6941, lng: 77.0925, status: 'normal', name: 'Sensor Array 3' }
+        { id: 1, lat: 28.527577, lng: 77.575765, status: 'normal', name: 'Sensor Array 1' },
+        { id: 2, lat: 28.526361, lng: 77.575937, status: 'warning', name: 'Sensor Array 2' },
+        { id: 3, lat: 28.525871, lng: 77.572525, status: 'critical', name: 'Sensor Array 3' }
     ];
 
     sensors.forEach(sensor => {
-        const color = sensor.status === 'normal' ? '#10b981' : sensor.status === 'warning' ? '#f59e0b' : '#ef4444';
+        const color = sensor.status === 'normal' ? '#10b981' : sensor.status === 'warning' ? '#f59e0b' :  '#ef4444';
 
         const marker = L.circleMarker([sensor.lat, sensor.lng], {
             radius: 10,
@@ -144,8 +143,8 @@ function initializeMap() {
         [28.7141, 77.1125, 0.8], // Sensor 2 (Warning)
         [28.6941, 77.0925, 0.2], // Sensor 3
         // Random Hotspots
-        [28.7091, 77.1075, 0.6],
-        [28.7001, 77.0985, 0.4]
+        [28.7091, 77.1075, 1.6],
+        [28.7001, 77.0985, 2.4]
     ];
 
     if (L.heatLayer) {
