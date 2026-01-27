@@ -1359,3 +1359,17 @@ body.red-alert .card {
         /* Above nav bar if bottom nav exists, or just higher */
     }
 }
+/* PDF Print Styles */
+.pdf-container-hidden { position: fixed; top: 0; left: 0; z-index: -1000; opacity: 0; pointer-events: none; }
+.report-page-a4 { width: 210mm; height: 297mm; background: #ffffff; color: #1a1a1a; padding: 20mm; box-sizing: border-box; position: relative; overflow: hidden; margin-bottom: 2rem; display: flex; flex-direction: column; font-family: 'Inter', sans-serif; }
+.report-page-header { border-bottom: 2px solid #10b981; padding-bottom: 1rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; }
+.report-page-header h1 { font-size: 24px; font-weight: 700; color: #0f172a; margin: 0; }
+.report-page-header .brand { font-size: 14px; color: #64748b; display: flex; align-items: center; gap: 0.5rem; }
+.report-page-footer { position: absolute; bottom: 20mm; left: 20mm; right: 20mm; border-top: 1px solid #e2e8f0; padding-top: 1rem; display: flex; justify-content: space-between; font-size: 10px; color: #94a3b8; }
+.report-content-box { flex: 1; display: flex; flex-direction: column; gap: 1.5rem; }
+.report-page-a4 p { font-size: 12px; line-height: 1.6; color: #334155; text-align: justify; }
+.report-page-a4 h2 { font-size: 16px; color: #0f172a; margin-bottom: 0.5rem; border-left: 4px solid #10b981; padding-left: 0.75rem; }
+.report-page-a4 .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin: 1rem 0; }
+.report-page-a4 .stat-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 1rem; border-radius: 8px; text-align: center; }
+.report-page-a4 .stat-value { font-size: 20px; font-weight: 700; color: #0f172a; }
+.report-page-a4 .stat-label { font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.25rem; }

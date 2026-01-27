@@ -572,88 +572,161 @@ function initializeReports() {
 
 
 
+
 async function generatePDFReport() {
     const btn = document.getElementById('generate-pdf');
     const originalText = btn.innerHTML;
     btn.disabled = true;
     btn.innerHTML = '<i class="ph ph-spinner"></i> Generating...';
 
-    const element = document.getElementById('report-preview');
-
-    // 1. Prepare for Full Capture (Fix Truncation)
-    const originalStyles = {
-        height: element.style.height,
-        maxHeight: element.style.maxHeight,
-        overflow: element.style.overflow,
-        position: element.style.position
-    };
-
-    // Force element to expand to full content height
-    element.style.height = 'auto';
-    element.style.maxHeight = 'none';
-    element.style.overflow = 'visible';
-
-    // Ensure charts are rendered
-    if (document.getElementById('reportTempChart')) {
-        renderReportCharts();
-        await new Promise(resolve => setTimeout(resolve, 500));
-    }
+    const reportType = document.getElementById('report-type').value;
+    const today = new Date().toLocaleDateString();
 
     try {
-        const canvas = await html2canvas(element, {
-            scale: 2,
-            useCORS: true,
-            logging: false,
-            backgroundColor: '#0f111a',
-            scrollY: -window.scrollY
-        });
+        // 1. Create Off-Screen Container for Pagination
+        const container = document.createElement('div');
+        container.className = 'pdf-container-hidden';
+        document.body.appendChild(container);
 
-        const imgData = canvas.toDataURL('image/png');
-        const { jsPDF } = window.jspdf;
+        // 2. Helper to create a new A4 Page
+        let pageCount = 1;
+        const createPage = () => {
+            const page = document.createElement('div');
+            page.className = 'report-page-a4';
+            page.innerHTML = `
+                <div class="report-page-header">
+                    <h1>ForestGuard Analysis</h1>
+                    <div class="brand">
+                        <i class="ph ph-tree-palm"></i> ForestGuard AI v2.4
+                    </div>
+                </div>
+                <div class="report-content-box" id="page-content-${pageCount}">
+                    <!-- Content injected here -->
+                </div>
+                <div class="report-page-footer">
+                    <span>Generated: ${today}</span>
+                    <span>Report Type: ${reportType.toUpperCase()}</span>
+                    <span>Page ${pageCount}</span>
+                </div>
+            `;
+            container.appendChild(page);
+            return {
+                page,
+                contentBox: page.querySelector('.report-content-box')
+            };
+        };
 
-        // A4 Dimensions
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        const pdfWidth = pdf.internal.pageSize.getWidth(); // ~210mm
-        const pdfHeight = pdf.internal.pageSize.getHeight(); // ~297mm
+        // 3. Page 1: Executive Summary & Overview
+        let currentPage = createPage();
+        pageCount++;
 
-        const imgWidth = pdfWidth;
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        // Inject Title Section
+        currentPage.contentBox.innerHTML += `
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <h2 style="border:none; font-size: 28px; margin-bottom: 0.5rem;">${reportType.charAt(0).toUpperCase() + reportType.slice(1)} Report</h2>
+                <p style="text-align: center; color: #64748b;">Comprehensive Environmental & Risk Assessment</p>
+            </div>
+            
+            <div class="stat-grid">
+               <div class="stat-box"><div class="stat-value">24.5°C</div><div class="stat-label">Avg Temp</div></div>
+               <div class="stat-box"><div class="stat-value">18.5 km/h</div><div class="stat-label">Wind Speed</div></div>
+               <div class="stat-box"><div class="stat-value">42%</div><div class="stat-label">Humidity</div></div>
+               <div class="stat-box"><div class="stat-value">Low</div><div class="stat-label">Risk Level</div></div>
+            </div>
+        `;
 
-        let heightLeft = imgHeight;
-        let position = 0;
+        // Inject AI Analysis (Text)
+        const aiParagraphs = await generateAIAnalysis();
+        currentPage.contentBox.innerHTML += `
+            <div style="margin-top: 1.5rem;">
+                <h2>Executive Analysis</h2>
+                ${aiParagraphs.slice(0, 3).map(p => `<p style="margin-bottom: 1rem;">${p}</p>`).join('')}
+            </div>
+        `;
 
-        // Add first page
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pdfHeight;
+        // 4. Page 2: Detailed Metrics & Recommendations
+        currentPage = createPage();
+        pageCount++;
 
-        // Add subsequent pages if needed
-        while (heightLeft > 0) {
-            position = heightLeft - imgHeight; // This calculation is tricky for jsPDF
-            // Correct logic: shift the image UP by one page height
-            position = -1 * (pdfHeight * Math.ceil((imgHeight - heightLeft) / pdfHeight));
+        currentPage.contentBox.innerHTML += `
+            <div>
+                 <h2>Detailed Metrics</h2>
+                 <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 1rem;">
+                    <thead style="background: #f1f5f9; border-bottom: 2px solid #e2e8f0;">
+                        <tr><th style="padding: 0.75rem; text-align: left;">Sensor Input</th><th style="padding: 0.75rem; text-align: left;">Avg Value</th><th style="padding: 0.75rem; text-align: left;">Max Recorded</th><th style="padding: 0.75rem; text-align: left;">Status</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border-bottom: 1px solid #e2e8f0;"><td style="padding: 0.75rem;">Thermal Array</td><td style="padding: 0.75rem;">24.5°C</td><td style="padding: 0.75rem;">28.3°C</td><td style="padding: 0.75rem; color: #10b981;">Normal</td></tr>
+                        <tr style="border-bottom: 1px solid #e2e8f0;"><td style="padding: 0.75rem;">Hygrometer</td><td style="padding: 0.75rem;">42%</td><td style="padding: 0.75rem;">55%</td><td style="padding: 0.75rem; color: #f59e0b;">Watch</td></tr>
+                        <tr style="border-bottom: 1px solid #e2e8f0;"><td style="padding: 0.75rem;">Anemometer</td><td style="padding: 0.75rem;">18.5 km/h</td><td style="padding: 0.75rem;">32.1 km/h</td><td style="padding: 0.75rem; color: #10b981;">Normal</td></tr>
+                        <tr style="border-bottom: 1px solid #e2e8f0;"><td style="padding: 0.75rem;">Particulate (PM2.5)</td><td style="padding: 0.75rem;">12 µg/m³</td><td style="padding: 0.75rem;">18 µg/m³</td><td style="padding: 0.75rem; color: #10b981;">Good</td></tr>
+                    </tbody>
+                 </table>
+            </div>
 
-            // Simpler: Just subtract pageHeight from current position? 
-            // Standard approach:
-            pdf.addPage();
-            pdf.addImage(imgData, 'PNG', 0, -(imgHeight - heightLeft), imgWidth, imgHeight);
-            heightLeft -= pdfHeight;
+            <div style="margin-top: 2rem;">
+                <h2>Strategic Recommendations</h2>
+                <ul style="list-style-type: disc; padding-left: 1.5rem; color: #334155; font-size: 12px; line-height: 1.6;">
+                    <li style="margin-bottom: 0.5rem;">Increase surveillance frequency in Sector 3 due to lower humidity trends.</li>
+                    <li style="margin-bottom: 0.5rem;">Calibrate wind sensors within the next operational cycle.</li>
+                    <li style="margin-bottom: 0.5rem;">Maintain current alert readiness status "Yellow" until thermal wave passes.</li>
+                </ul>
+            </div>
+        `;
+
+        // 5. Page 3: Visual Analytics (Charts)
+        currentPage = createPage();
+        pageCount++;
+
+        const tempChart = document.getElementById('reportTempChart');
+        if (tempChart) {
+            const chartImg = tempChart.toDataURL();
+            currentPage.contentBox.innerHTML += `
+                <div>
+                    <h2>Visual Trend Analysis</h2>
+                    <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; margin-top: 1rem;">
+                        <img src="${chartImg}" style="width: 100%; height: auto; display: block;">
+                    </div>
+                    <p style="font-size: 10px; color: #94a3b8; text-align: center; margin-top: 0.5rem;">Figure 1: 7-Day Temperature vs Humidity Correlation</p>
+                </div>
+             `;
         }
 
-        const today = new Date().toISOString().split('T')[0];
-        const reportType = document.getElementById('report-type').value;
-        pdf.save(`forestguard-${reportType}-report-${today}.pdf`);
-        showToast('Report generated successfully!', 'success');
+        // 6. Generate PDF from Pages
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pages = container.querySelectorAll('.report-page-a4');
+
+        for (let i = 0; i < pages.length; i++) {
+            if (i > 0) pdf.addPage();
+
+            // Wait for images to load if any
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            const canvas = await html2canvas(pages[i], {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                backgroundColor: '#ffffff'
+            });
+            const imgData = canvas.toDataURL('image/png');
+            pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
+        }
+
+        // Cleanup
+        document.body.removeChild(container);
+
+        // Save
+        pdf.save(`forestguard-${reportType}-report-${today.replace(/\//g, '-')}.pdf`);
+        showToast('Professional PDF generated!', 'success');
 
     } catch (error) {
         console.error('PDF Error', error);
         showToast('Failed to generate PDF', 'error');
     } finally {
-        // Restore styles
-        element.style.height = originalStyles.height;
-        element.style.maxHeight = originalStyles.maxHeight;
-        element.style.overflow = originalStyles.overflow;
-
         btn.disabled = false;
         btn.innerHTML = originalText;
     }
 }
+
+
