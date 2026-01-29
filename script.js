@@ -267,6 +267,12 @@ class DataService {
     }
 
     async processData(data) {
+        // Validate and fix timestamp if needed
+        if (!data.timestamp || isNaN(new Date(data.timestamp).getTime())) {
+            console.warn('Invalid or missing timestamp, using current time');
+            data.timestamp = new Date().toISOString();
+        }
+
         // Save to DB
         if (window.db) {
             await window.db.addReading(data);

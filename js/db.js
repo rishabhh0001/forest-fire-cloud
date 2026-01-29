@@ -55,10 +55,18 @@ class ForestDB {
 
         return new Promise(async (resolve, reject) => {
             try {
+                // Validate timestamp before processing
+                let timestamp = data.timestamp;
+                if (!timestamp || isNaN(new Date(timestamp).getTime())) {
+                    console.warn('Invalid timestamp in data, using current time');
+                    timestamp = new Date().toISOString();
+                }
+
                 // Add date string for easier indexing
                 const record = {
                     ...data,
-                    date: new Date(data.timestamp).toISOString().split('T')[0]
+                    timestamp: timestamp,
+                    date: new Date(timestamp).toISOString().split('T')[0]
                 };
 
                 const transaction = this.db.transaction(['readings'], 'readwrite');
