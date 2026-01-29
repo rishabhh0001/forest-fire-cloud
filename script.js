@@ -184,14 +184,17 @@ class DataService {
 
         if (CONFIG.useLiveData) {
             try {
+                console.log(`Fetching live data from: ${CONFIG.apiEndpoint}`);
                 const response = await fetch(CONFIG.apiEndpoint);
                 const data = await response.json();
+                console.log('ESP8266 data received:', data);
                 return this.processData(data);
             } catch (e) {
                 console.error("Connection failed, falling back to simulation", e);
                 return this.simulateDataWithPersistence();
             }
         } else {
+            console.log('Using simulated data (Live mode is OFF)');
             return this.simulateDataWithPersistence();
         }
     }
@@ -792,6 +795,31 @@ const audio = new AudioController();
 const dataService = new DataService();
 window.sim = dataService;
 
+
+// Load saved settings from localStorage on page load
+function loadSavedSettings() {
+    const savedMode = localStorage.getItem('forestGuard_connectionMode');
+    if (savedMode) {
+        CONFIG.useLiveData = savedMode === 'live';
+        console.log(`Loaded connection mode: ${savedMode} (useLiveData: ${CONFIG.useLiveData})`);
+    }
+
+    const savedEndpoint = localStorage.getItem('forestGuard_apiEndpoint');
+    if (savedEndpoint) {
+        CONFIG.apiEndpoint = savedEndpoint;
+        console.log(`Loaded API endpoint: ${savedEndpoint}`);
+    }
+
+    const savedPollingRate = localStorage.getItem('forestGuard_pollingRate');
+    if (savedPollingRate) {
+        CONFIG.refreshRate = parseInt(savedPollingRate);
+        console.log(`Loaded polling rate: ${savedPollingRate}ms`);
+    }
+}
+
+// Load settings immediately
+loadSavedSettings();
+
 document.addEventListener('DOMContentLoaded', () => {
     // Note: Audio context requires user interaction to start.
     // We bind it to any click for now, or the debug buttons will handle it.
@@ -806,3 +834,4 @@ document.addEventListener('DOMContentLoaded', () => {
         UI.updateDashboard(data);
     }, CONFIG.refreshRate);
 });
+
