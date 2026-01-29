@@ -6,7 +6,7 @@
 // Configuration
 const CONFIG = {
     useLiveData: false,             // Set to true to fetch from APIEndpoint
-    apiEndpoint: 'http://192.168.1.100/data', // Example ESP8266 local IP or Cloud URL
+    apiEndpoint: 'http://192.168.4.1/readings', // ESP8266 standalone server endpoint
     refreshRate: 3000,              // Update every 3s
     riskThresholds: {
         moderate: 40,
