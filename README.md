@@ -4,7 +4,9 @@
 
 ![ForestGuard Dashboard](./public/dashboard.png)
 
+
 ## ✨ Features
+
 
 ### 🎯 Core Functionality
 - **Real-time Monitoring**: Live temperature, humidity, wind speed, and air quality tracking
@@ -30,33 +32,9 @@
 5. **Settings** - Configuration and ESP8266 setup
 6. **Reports** - PDF generation and export
 
-## 🚀 Quick Start
-
-### Prerequisites
-- Modern web browser (Chrome, Firefox, Safari, Edge)
-- Optional: ESP8266 device for live sensor data
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/forestguard.git
-   cd forestguard
-   ```
-
-2. **Run locally**
-   ```bash
-   npm run dev
-   ```
-   Or use any static file server:
-   ```bash
-   python -m http.server 8080
-   ```
-
-3. **Open in browser**
-   Navigate to `http://localhost:8080`
 
 ## 🔌 ESP8266 Integration
+
 
 ### Hardware Setup
 1. Connect DHT22 (temperature/humidity) to GPIO4
